@@ -3393,3 +3393,109 @@ body.gh-layout-top .gh-channels > .gh-pings {
 body.gh-layout-top .gh-threads {
     display: none;
 }
+
+/* ═════ hover a channel: its active threads in a small panel beside it ═════ */
+
+.gh-flyout {
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_accent-soft: var(--gh-accent-soft, rgb(235 69 158 / 16%));
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+
+    position: fixed;
+    z-index: 950;
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    max-height: 330px;
+    padding: 6px;
+    box-sizing: border-box;
+    border: 1px solid var(--gh-edge, rgb(127 127 127 / 25%));
+    border-radius: 14px;
+    background: var(--gh-raised, var(--background-base-low));
+    color: var(--_text);
+    font: 14px var(--font-primary);
+    animation: gh-fade 160ms ease both;
+}
+
+.gh-flyout.gh-flip {
+    transform: translateX(-100%);
+}
+
+.gh-flyout header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px 8px;
+    color: var(--_muted);
+}
+
+.gh-flyout header strong {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--_text);
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-flyout header small {
+    flex: none;
+    font-size: 11px;
+}
+
+.gh-flyout-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-height: 0;
+    overflow: hidden auto;
+}
+
+.gh-flyout .gh-flyout-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--_muted);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.gh-flyout-row span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-flyout .gh-flyout-row:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+.gh-flyout .gh-flyout-row.gh-unread {
+    color: var(--_text);
+    font-weight: 600;
+}
+
+.gh-flyout .gh-flyout-row.gh-on {
+    background: var(--_accent-soft);
+    color: var(--_accent);
+}
+
+body.gh-motion-off .gh-flyout {
+    animation: none;
+}

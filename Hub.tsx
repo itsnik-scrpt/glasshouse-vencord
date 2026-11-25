@@ -147,6 +147,32 @@ function channelIcon(type: number) {
 function Channels({ guildId, query, top }: { guildId: string; query: string; top?: any; }) {
     useStores([GuildChannelStore, ChannelStore, ReadStateStore, SelectedChannelStore, VoiceStateStore, UserGuildSettingsStore, UserStore, ActiveJoinedThreadsStore], 400);
     const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+    // Hovering a channel for a moment shows every active thread in it, joined or not.
+    const [hover, setHover] = useState<{ id: string; x: number; y: number; flip: boolean; } | null>(null);
+    const hoverTimer = useRef<any>(null);
+    const threadsOf = (id: string): any[] => {
+        const pick = (rec: Record<string, any>) => Object.values(rec).map((t: any) => t?.channel ?? t).filter((t: any) => t?.id);
+        const joined = pick(safe(() => ActiveJoinedThreadsStore.getActiveJoinedThreadsForParent(guildId, id) as any, {}));
+        const others = pick(safe(() => ActiveJoinedThreadsStore.getActiveUnjoinedThreadsForParent(guildId, id) as any, {}));
+        const seen = new Set<string>();
+        return [...joined, ...others]
+            .filter(t => !seen.has(t.id) && (seen.add(t.id), true))
+            .sort((a, b) => (b.lastMessageId ?? b.id).localeCompare(a.lastMessageId ?? a.id));
+    };
+    const enterRow = (e: any, id: string) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        clearTimeout(hoverTimer.current);
+        hoverTimer.current = setTimeout(() => {
+            if (!threadsOf(id).length) return setHover(null);
+            const flip = r.right + 300 > window.innerWidth;
+            setHover({ id, x: flip ? r.left - 8 : r.right + 8, y: Math.max(8, Math.min(r.top - 8, window.innerHeight - 340)), flip });
+        }, 320);
+    };
+    const leaveRow = () => {
+        clearTimeout(hoverTimer.current);
+        hoverTimer.current = setTimeout(() => setHover(null), 240);
+    };
+    useEffect(() => () => clearTimeout(hoverTimer.current), []);
 
     useEffect(() => {
         DataStore.get(COLLAPSED_KEY).then(v => v && setCollapsed(v));
@@ -208,6 +234,8 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
                         + (muted ? " gh-muted" : "")}
                     onClick={() => open(c)}
                     onContextMenu={e => channelContext(e, c.id)}
+                    onMouseEnter={e => !isVoice(c) && enterRow(e, c.id)}
+                    onMouseLeave={leaveRow}
                     aria-label={c.topic || c.name}
                 >
                     <Icon d={channelIcon(c.type)} size={16} />
@@ -284,9 +312,35 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
         });
 
     const any = loose.some(Boolean) || sections.some(Boolean);
+
+    const hoverChannel = hover ? all.find(c => c.id === hover.id) : null;
+    const hoverThreads = hover ? threadsOf(hover.id) : [];
+    const flyout = hover && hoverChannel && hoverThreads.length > 0 ? ReactDOM.createPortal(
+        <div className={"gh-flyout" + (hover.flip ? " gh-flip" : "")} style={{ left: hover.x, top: hover.y }}
+            onMouseEnter={() => clearTimeout(hoverTimer.current)} onMouseLeave={leaveRow}>
+            <header>
+                <Icon d={I.thread} size={14} />
+                <strong>{hoverChannel.name}</strong>
+                <small>{hoverThreads.length} {hoverThreads.length === 1 ? "thread" : "threads"}</small>
+            </header>
+            <div className="gh-flyout-list">
+                {hoverThreads.map(t => (
+                    <button key={t.id}
+                        className={"gh-flyout-row" + (t.id === selectedChannel ? " gh-on" : "") + (safe(() => ReadStateStore.hasUnread(t.id), false) ? " gh-unread" : "")}
+                        onClick={() => { NavigationRouter.transitionToGuild(guildId, t.id); setHover(null); }}
+                        onContextMenu={e => channelContext(e, t.id)}>
+                        <span>{t.name}</span>
+                        <Badge n={safe(() => ReadStateStore.getMentionCount(t.id), 0)} />
+                    </button>
+                ))}
+            </div>
+        </div>,
+        portalHost()
+    ) : null;
     return (
         <div className="gh-channels" onWheel={e => { if (settings.store.layout === "top") e.currentTarget.scrollLeft += e.deltaY; }}>
             {top}
+            {flyout}
             {loose}
             {sections}
             {!any && <div className="gh-empty">{query ? `No channel matches “${query}”.` : "No channels to show."}</div>}
