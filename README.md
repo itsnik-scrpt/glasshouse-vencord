@@ -14,9 +14,11 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 
 ![Glasshouse in the dark theme](screenshots/dark.png)
 
-| Server picker | Light theme |
+| Home and friends | Server picker |
 |---|---|
-| ![Server picker with groups](screenshots/servers.png) | ![Glasshouse in the light theme](screenshots/light.png) |
+| ![Home view with DMs, friends and Active now](screenshots/friends.png) | ![Server picker with groups](screenshots/servers.png) |
+
+![Glasshouse in the light theme](screenshots/light.png)
 
 *Preview images, drawn with sample data.*
 
