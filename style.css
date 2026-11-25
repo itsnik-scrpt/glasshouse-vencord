@@ -1,0 +1,3371 @@
+/* Glasshouse hub. Colours come from the Glasshouse theme's --gh-* variables,
+   with fallbacks so the hub is still usable under another theme. */
+
+#gh-hub,
+.gh-drawer {
+    --_glass: var(--gh-glass, var(--background-base-lower));
+    --_solid: var(--gh-solid, var(--background-base-low));
+    --_inset: var(--gh-inset, rgb(127 127 127 / 12%));
+    --_edge: var(--gh-edge, rgb(127 127 127 / 25%));
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_accent-soft: var(--gh-accent-soft, rgb(235 69 158 / 16%));
+    --_accent-glow: var(--gh-accent-glow, rgb(235 69 158 / 40%));
+    --_radius: var(--gh-radius, 16px);
+    --_small: var(--gh-radius-small, 10px);
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+    --_row: 34px;
+
+    color: var(--_text);
+    font-family: var(--font-primary);
+    font-size: 14px;
+}
+
+body.gh-compact #gh-hub,
+body.gh-compact .gh-drawer {
+    --_row: 28px;
+    font-size: 13px;
+}
+
+/* ───── placement: the hub takes over Discord's sidebar ───── */
+
+body.gh-hub #app-mount nav[class*="guilds_"],
+body.gh-hub #app-mount [class*="sidebarList_"] {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+#gh-hub {
+    position: absolute;
+    inset: 0 0 calc(var(--custom-app-panels-height, 56px) + 18px) 0;
+    z-index: 5;
+    display: none;
+}
+
+body.gh-hub #gh-hub {
+    display: block;
+}
+
+.gh-hub-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    background: var(--_glass);
+    border: 1px solid var(--_edge);
+    border-radius: var(--_radius);
+    box-shadow: var(--gh-shadow, 0 10px 30px rgb(0 0 0 / 20%)), var(--gh-shine, inset 0 0 0 transparent);
+    overflow: hidden;
+}
+
+#gh-hub button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+}
+
+.gh-ico {
+    flex: none;
+}
+
+/* ───── top: search + tools ───── */
+
+.gh-top {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 12px 8px;
+}
+
+.gh-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 10px;
+    background: var(--_inset);
+    border: 1px solid var(--_line);
+    border-radius: var(--_small);
+    color: var(--_muted);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gh-search:focus-within {
+    border-color: var(--_accent);
+    box-shadow: 0 0 0 3px var(--_accent-soft);
+    color: var(--_text);
+}
+
+.gh-search input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    color: var(--_text);
+}
+
+.gh-search input::placeholder {
+    color: var(--_muted);
+}
+
+.gh-tools {
+    display: flex;
+    gap: 2px;
+}
+
+#gh-hub .gh-tool,
+.gh-drawer .gh-tool {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    color: var(--_muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color 0.12s ease, background-color 0.12s ease, transform 0.12s ease;
+}
+
+#gh-hub .gh-tool:hover,
+.gh-drawer .gh-tool:hover {
+    color: var(--_text);
+    background: var(--_hover);
+}
+
+#gh-hub .gh-tool:active {
+    transform: scale(0.9);
+}
+
+#gh-hub .gh-tool.gh-on {
+    color: var(--_accent);
+}
+
+#gh-hub .gh-tool:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* ───── servers ───── */
+
+@keyframes gh-pop {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes gh-slide {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.gh-servers {
+    flex: none;
+    scrollbar-width: none;
+}
+
+.gh-servers::-webkit-scrollbar {
+    display: none;
+}
+
+.gh-servers-strip {
+    display: flex;
+    gap: 8px;
+    padding: 6px 12px 12px;
+    overflow: auto hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 22px), transparent);
+}
+
+.gh-servers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px 8px 8px;
+    max-height: 46%;
+    overflow: hidden auto;
+}
+
+#gh-hub .gh-server {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: none;
+    animation: gh-pop 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.35) both;
+    animation-delay: calc(min(var(--i), 24) * 16ms);
+}
+
+.gh-servers-list .gh-server {
+    padding: 4px 8px 4px 4px;
+    border-radius: var(--_small);
+    animation-name: gh-slide !important;
+    transition: background-color 0.12s ease;
+}
+
+.gh-servers-list .gh-server:hover {
+    background: var(--_hover);
+}
+
+.gh-servers-list .gh-server.gh-on {
+    background: var(--_accent-soft);
+}
+
+.gh-server-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 14px;
+    background: var(--_inset);
+    color: var(--_muted);
+    transition: transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4), border-radius 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gh-servers-list .gh-server-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+}
+
+.gh-server-icon img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+    display: block;
+}
+
+.gh-acronym {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--_muted);
+}
+
+.gh-servers-strip .gh-server:hover .gh-server-icon {
+    transform: translateY(-3px) scale(1.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgb(0 0 0 / 22%);
+}
+
+.gh-servers-strip .gh-server:active .gh-server-icon {
+    transform: scale(0.92);
+}
+
+.gh-server.gh-on .gh-server-icon {
+    box-shadow: 0 0 0 2px var(--_solid), 0 0 0 4px var(--_accent), 0 6px 18px var(--_accent-glow);
+}
+
+.gh-server-home.gh-on .gh-server-icon {
+    color: var(--_accent);
+}
+
+/* unread dot under the icon in the strip, before the name in the list */
+.gh-servers-strip .gh-server.gh-unread::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--_accent);
+}
+
+.gh-server-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.gh-servers-list .gh-server.gh-unread .gh-server-name {
+    font-weight: 700;
+}
+
+.gh-badge {
+    flex: none;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: var(--_accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
+.gh-server-icon .gh-badge {
+    position: absolute;
+    right: -5px;
+    bottom: -4px;
+    box-shadow: 0 0 0 2px var(--_solid);
+}
+
+/* ───── guild header ───── */
+
+.gh-guild-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--_line);
+    border-bottom: 1px solid var(--_line);
+}
+
+.gh-guild-head strong {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.gh-guild-head small {
+    flex: none;
+    color: var(--_muted);
+    font-size: 12px;
+}
+
+/* ───── channels ───── */
+
+.gh-channels {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    padding: 8px;
+}
+
+.gh-cat {
+    margin-top: 10px;
+}
+
+#gh-hub .gh-cat-head,
+.gh-cat-head.gh-static {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding: 4px 6px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gh-cat-head.gh-static {
+    margin-top: 10px;
+}
+
+#gh-hub .gh-cat-head:hover {
+    color: var(--_text);
+}
+
+.gh-cat-head .gh-ico {
+    transition: transform 0.15s ease;
+}
+
+.gh-collapsed .gh-cat-head .gh-ico {
+    transform: rotate(-90deg);
+}
+
+.gh-cat-head span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gh-hub .gh-channel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: var(--_row);
+    padding: 0 8px;
+    border-radius: var(--_small);
+    color: var(--_muted);
+    transition: background-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+#gh-hub .gh-channel:hover {
+    background: var(--_hover);
+    color: var(--_text);
+    transform: translateX(2px);
+}
+
+#gh-hub .gh-channel.gh-unread {
+    color: var(--_text);
+    font-weight: 600;
+}
+
+#gh-hub .gh-channel.gh-unread::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    width: 4px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--_text);
+}
+
+#gh-hub .gh-channel.gh-muted {
+    opacity: 0.5;
+}
+
+#gh-hub .gh-channel.gh-on {
+    color: var(--_text);
+    background: linear-gradient(90deg, var(--_accent-soft), transparent 95%);
+    box-shadow: inset 3px 0 0 var(--_accent);
+}
+
+.gh-channel-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-count {
+    flex: none;
+    font-size: 11px;
+    color: var(--_muted);
+}
+
+#gh-hub .gh-dm {
+    height: calc(var(--_row) + 8px);
+}
+
+.gh-avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--_inset);
+}
+
+.gh-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+}
+
+.gh-status {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--_solid);
+    background: #8a8f98;
+}
+
+.gh-status.gh-online {
+    background: #23a55a;
+}
+
+.gh-status.gh-idle {
+    background: #f0b232;
+}
+
+.gh-status.gh-dnd {
+    background: #f23f43;
+}
+
+.gh-status.gh-streaming {
+    background: #593695;
+}
+
+.gh-empty {
+    padding: 18px 10px;
+    color: var(--_muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+/* ───── drawers: member finder and quick settings ───── */
+
+@keyframes gh-drawer-in {
+    from {
+        opacity: 0;
+        transform: translateX(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes gh-sheet-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.gh-drawer {
+    position: fixed;
+    top: 44px;
+    right: 14px;
+    bottom: 14px;
+    width: 340px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+    background: var(--gh-raised, var(--_solid));
+    border: 1px solid var(--_edge);
+    border-radius: var(--_radius);
+    box-shadow: 0 24px 60px rgb(0 0 0 / 30%);
+    animation: gh-drawer-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+.gh-drawer-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 2px 4px;
+}
+
+.gh-drawer-head strong {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-display);
+}
+
+.gh-reason {
+    height: 32px;
+}
+
+.gh-members {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+}
+
+.gh-member {
+    border-radius: var(--_small);
+    animation: gh-slide 0.25s ease both;
+    animation-delay: calc(min(var(--i), 20) * 12ms);
+}
+
+.gh-member.gh-open {
+    background: var(--_inset);
+}
+
+.gh-drawer .gh-member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: var(--_small);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.gh-drawer .gh-member-row:hover {
+    background: var(--_hover);
+}
+
+.gh-member-names {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-weight: 600;
+}
+
+.gh-member-names > * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-member-names small {
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.gh-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 8px 10px;
+}
+
+.gh-actions small {
+    color: var(--_muted);
+    align-self: center;
+}
+
+.gh-drawer .gh-actions button {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--_line);
+    border-radius: 8px;
+    background: var(--_solid);
+    color: inherit;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+
+.gh-drawer .gh-actions button:hover {
+    border-color: var(--_accent);
+    color: var(--_accent);
+}
+
+.gh-drawer .gh-actions button:active {
+    transform: scale(0.95);
+}
+
+.gh-drawer .gh-actions button.gh-danger {
+    color: #da373c;
+}
+
+.gh-drawer .gh-actions button.gh-danger:hover {
+    border-color: #da373c;
+}
+
+.gh-settings {
+    position: absolute;
+    inset: 96px 8px 8px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    overflow: hidden auto;
+    background: var(--gh-raised, var(--_solid));
+    border: 1px solid var(--_edge);
+    border-radius: calc(var(--_radius) - 4px);
+    box-shadow: 0 18px 40px rgb(0 0 0 / 22%);
+    animation: gh-sheet-in 0.2s ease both;
+}
+
+.gh-range {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--_muted);
+}
+
+.gh-range span {
+    display: flex;
+    justify-content: space-between;
+}
+
+.gh-range b {
+    color: var(--_text);
+    font-variant-numeric: tabular-nums;
+}
+
+.gh-range input {
+    width: 100%;
+    accent-color: var(--_accent);
+}
+
+.gh-hue input {
+    appearance: none;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, hsl(0deg 80% 55%), hsl(60deg 80% 55%), hsl(120deg 80% 55%), hsl(180deg 80% 55%), hsl(240deg 80% 55%), hsl(300deg 80% 55%), hsl(360deg 80% 55%));
+}
+
+.gh-hue input::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid var(--_accent);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+}
+
+.gh-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.gh-check input {
+    accent-color: var(--_accent);
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #gh-hub *,
+    .gh-drawer,
+    .gh-drawer * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ───── server button ───── */
+
+#gh-hub .gh-guild-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 8px;
+    padding: 8px;
+    border: 1px solid var(--_line);
+    border-radius: var(--_small);
+    background: var(--_inset);
+    color: var(--_muted);
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#gh-hub .gh-guild-btn:hover {
+    border-color: var(--_accent);
+    box-shadow: 0 6px 18px var(--_accent-soft);
+    transform: translateY(-1px);
+}
+
+#gh-hub .gh-guild-btn:active {
+    transform: scale(0.98);
+}
+
+.gh-guild-btn .gh-server-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+}
+
+.gh-guild-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    color: var(--_text);
+}
+
+.gh-guild-text > * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-guild-text small {
+    color: var(--_muted);
+    font-size: 12px;
+}
+
+/* ───── exit focus ───── */
+
+.gh-focus-exit {
+    position: fixed;
+    top: 40px;
+    left: 14px;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px 0 10px;
+    border: 1px solid var(--gh-edge, rgb(127 127 127 / 25%));
+    border-radius: 15px;
+    background: var(--gh-raised, var(--background-base-low));
+    color: var(--text-default, var(--text-normal));
+    font: 600 12px var(--font-primary);
+    cursor: pointer;
+    opacity: 0.55;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 15%);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.gh-focus-exit:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* ───── fullscreen server grid ───── */
+
+@keyframes gh-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes gh-rise {
+    from {
+        opacity: 0;
+        transform: translateY(26px) scale(0.8) rotate(-3deg);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes gh-unfold {
+    from {
+        opacity: 0;
+        transform: scaleY(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.gh-overlay {
+    --_inset: var(--gh-inset, rgb(127 127 127 / 12%));
+    --_edge: var(--gh-edge, rgb(127 127 127 / 25%));
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_solid: var(--gh-solid, var(--background-base-low));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_accent-soft: var(--gh-accent-soft, rgb(235 69 158 / 16%));
+    --_accent-glow: var(--gh-accent-glow, rgb(235 69 158 / 40%));
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    color: var(--_text);
+    font-family: var(--font-primary);
+    background: color-mix(in srgb, var(--gh-base, var(--background-base-lowest)) 62%, transparent);
+    animation: gh-fade 0.18s ease both;
+}
+
+.gh-overlay-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(720px, 90vw);
+    margin: 56px auto 8px;
+}
+
+.gh-overlay .gh-tool {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--_muted);
+    cursor: pointer;
+}
+
+.gh-overlay .gh-tool:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+.gh-search-big {
+    flex: 1;
+    height: 52px;
+    padding: 0 18px;
+    border-radius: 26px;
+    font-size: 17px;
+    background: var(--gh-raised, var(--_solid));
+    box-shadow: 0 14px 40px rgb(0 0 0 / 12%);
+}
+
+.gh-overlay-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    padding: 24px max(32px, calc((100vw - 1180px) / 2)) 64px;
+}
+
+.gh-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+    gap: 18px 12px;
+    align-items: start;
+}
+
+.gh-wide,
+.gh-group-open {
+    grid-column: 1 / -1;
+}
+
+.gh-overlay .gh-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px 10px;
+    border: 0;
+    border-radius: 20px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    animation: gh-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+    animation-delay: calc(min(var(--i), 40) * 14ms);
+    transition: background-color 0.15s ease;
+}
+
+.gh-overlay .gh-tile:hover {
+    background: var(--_hover);
+}
+
+.gh-tile-icon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    background: var(--_inset);
+    color: var(--_muted);
+    box-shadow: 0 8px 22px rgb(0 0 0 / 14%);
+    transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.5), border-radius 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gh-tile-icon > img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+    display: block;
+}
+
+.gh-tile-icon .gh-acronym {
+    font-size: 20px;
+}
+
+.gh-tile:hover .gh-tile-icon {
+    transform: translateY(-6px) scale(1.08) rotate(2deg);
+    border-radius: 20px;
+    box-shadow: 0 18px 34px rgb(0 0 0 / 22%);
+}
+
+.gh-tile:active .gh-tile-icon {
+    transform: scale(0.94);
+}
+
+.gh-tile.gh-on .gh-tile-icon {
+    box-shadow: 0 0 0 3px var(--_solid), 0 0 0 6px var(--_accent), 0 12px 30px var(--_accent-glow);
+}
+
+.gh-tile-icon .gh-badge {
+    position: absolute;
+    right: -6px;
+    top: -6px;
+    box-shadow: 0 0 0 3px var(--_solid);
+}
+
+.gh-tile.gh-unread .gh-tile-name::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--_accent);
+    vertical-align: 1px;
+}
+
+.gh-tile-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.gh-tile small {
+    margin-top: -6px;
+    color: var(--_muted);
+    font-size: 11px;
+}
+
+/* a closed group: four small icons inside one tile */
+.gh-group-preview {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    padding: 9px;
+    box-sizing: border-box;
+    border: 2px solid var(--gh-group, var(--_line));
+    background: color-mix(in srgb, var(--gh-group, transparent) 14%, var(--_inset));
+}
+
+.gh-group-preview > img,
+.gh-group-preview > .gh-acronym {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    background: var(--_inset);
+}
+
+/* an open group: a full-width band holding its own grid */
+.gh-group-open {
+    padding: 6px 14px 16px;
+    border: 1px solid var(--gh-group, var(--_edge));
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--gh-group, transparent) 9%, var(--_inset));
+    transform-origin: top;
+    animation: gh-unfold 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+.gh-overlay .gh-group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 4px;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.gh-group-head strong {
+    font-family: var(--font-display);
+    font-size: 15px;
+}
+
+.gh-group-head small {
+    color: var(--_muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gh-overlay,
+    .gh-overlay * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+/* ═════ v3: motion, layouts, options ═════ */
+
+/* ───── motion: small distances, long soft easing, transform and opacity only ───── */
+
+body {
+    --gh-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --gh-dur: 320ms;
+    --gh-stagger: 7ms;
+    --gh-stagger-cap: 12;
+}
+
+body.gh-motion-full {
+    --gh-dur: 420ms;
+    --gh-stagger: 14ms;
+    --gh-stagger-cap: 30;
+}
+
+@keyframes gh-pop {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes gh-slide {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes gh-rise {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes gh-unfold {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes gh-drawer-in {
+    from { opacity: 0; transform: translateX(12px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes gh-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.gh-overlay .gh-tile,
+.gh-member,
+.gh-drawer,
+.gh-group-open,
+#gh-hub .gh-server {
+    animation-duration: var(--gh-dur);
+    animation-timing-function: var(--gh-ease);
+    animation-delay: calc(min(var(--i, 0), var(--gh-stagger-cap)) * var(--gh-stagger));
+}
+
+.gh-drawer,
+.gh-group-open {
+    animation-delay: 0ms;
+}
+
+/* channel list and chat ease in when you switch server or channel */
+.gh-channels {
+    animation: gh-slide var(--gh-dur) var(--gh-ease) both;
+}
+
+body.gh-hub [class*="page_"] [class*="chatContent_"] {
+    animation: gh-fade 260ms var(--gh-ease) both;
+}
+
+/* hover: a couple of pixels and a soft shadow, no tilt */
+.gh-tile-icon {
+    transition: transform var(--gh-dur) var(--gh-ease), box-shadow var(--gh-dur) var(--gh-ease);
+}
+
+.gh-tile:hover .gh-tile-icon {
+    transform: translateY(-3px);
+    border-radius: 24px;
+    box-shadow: 0 14px 28px rgb(0 0 0 / 16%);
+}
+
+.gh-tile:active .gh-tile-icon {
+    transform: scale(0.97);
+}
+
+#gh-hub .gh-channel {
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+#gh-hub .gh-channel:hover {
+    transform: none;
+}
+
+/* the accent bar of the open channel grows in */
+#gh-hub .gh-channel.gh-on {
+    box-shadow: none;
+}
+
+#gh-hub .gh-channel.gh-on::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22%;
+    bottom: 22%;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--_accent);
+    transform-origin: center;
+    animation: gh-bar var(--gh-dur) var(--gh-ease) both;
+}
+
+@keyframes gh-bar {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+}
+
+#gh-hub .gh-guild-btn:hover {
+    transform: none;
+}
+
+#gh-hub .gh-tool:active {
+    transform: scale(0.94);
+}
+
+.gh-focus-exit:hover {
+    transform: none;
+}
+
+body.gh-motion-off #gh-hub *,
+body.gh-motion-off #gh-portal *,
+body.gh-motion-off .gh-channels,
+body.gh-motion-off [class*="chatContent_"] {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ───── cheap surfaces: no live blur anywhere ───── */
+
+.gh-drawer {
+    background: var(--gh-raised, var(--_solid));
+}
+
+.gh-overlay {
+    background:
+        linear-gradient(color-mix(in srgb, var(--gh-base, #fff) 55%, transparent), color-mix(in srgb, var(--gh-base, #fff) 55%, transparent)),
+        var(--gh-backdrop, var(--background-base-lowest));
+    animation: gh-fade 200ms var(--gh-ease) both;
+}
+
+.gh-tile-icon,
+.gh-server-icon {
+    contain: layout paint;
+}
+
+.gh-channels,
+.gh-overlay-scroll,
+.gh-members {
+    contain: content;
+}
+
+
+body.gh-layout-right #app-mount [class*="base_"] > [class*="content_"] {
+    flex-direction: row-reverse;
+}
+
+/* top bar */
+body.gh-layout-top #app-mount [class*="base_"] > [class*="content_"] {
+    display: flex !important;
+    flex-direction: column;
+    gap: var(--gh-gap, 10px);
+}
+
+body.gh-layout-top #app-mount [class*="content_"] > [class*="sidebar_"] {
+    display: block !important;
+    flex: none;
+    width: 100% !important;
+    height: 56px;
+}
+
+body.gh-layout-top #app-mount [class*="content_"] > [class*="page_"] {
+    height: auto;
+}
+
+body.gh-layout-top #gh-hub {
+    inset: 0 318px 0 0;
+}
+
+body.gh-layout-top #app-mount section[class*="panels_"] {
+    inset: 0 0 auto auto !important;
+    width: 308px !important;
+    min-height: 56px;
+    box-sizing: border-box;
+}
+
+body.gh-layout-top .gh-hub-inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+}
+
+body.gh-layout-top .gh-top {
+    order: 3;
+    flex-direction: row;
+    align-items: center;
+    flex: none;
+    padding: 0;
+}
+
+body.gh-layout-top .gh-top .gh-search {
+    width: 190px;
+}
+
+body.gh-layout-top #gh-hub .gh-guild-btn {
+    order: 1;
+    flex: none;
+    max-width: 230px;
+    margin: 0;
+    padding: 4px 10px 4px 4px;
+    border-color: transparent;
+    background: none;
+}
+
+body.gh-layout-top .gh-channels {
+    order: 2;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    height: 100%;
+    padding: 0 6px;
+    overflow: auto hidden;
+    scrollbar-width: none;
+    border-left: 1px solid var(--_line);
+    border-right: 1px solid var(--_line);
+}
+
+body.gh-layout-top .gh-channels::-webkit-scrollbar {
+    display: none;
+}
+
+body.gh-layout-top .gh-cat {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+    margin: 0;
+}
+
+body.gh-layout-top #gh-hub .gh-cat-head,
+body.gh-layout-top .gh-cat-head.gh-static {
+    width: auto;
+    flex: none;
+    margin: 0 2px 0 10px;
+    white-space: nowrap;
+}
+
+body.gh-layout-top #gh-hub .gh-channel {
+    width: auto;
+    flex: none;
+    max-width: 200px;
+    padding: 0 10px;
+    border-radius: 16px;
+}
+
+body.gh-layout-top #gh-hub .gh-channel.gh-on {
+    background: var(--_accent-soft);
+}
+
+body.gh-layout-top #gh-hub .gh-channel.gh-on::after {
+    left: 22%;
+    right: 22%;
+    top: auto;
+    bottom: 2px;
+    width: auto;
+    height: 3px;
+    animation-name: gh-bar-x;
+}
+
+@keyframes gh-bar-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+body.gh-layout-top #gh-hub .gh-channel.gh-unread::before {
+    display: none;
+}
+
+body.gh-layout-top .gh-empty {
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ───── options ───── */
+
+body.gh-no-channel-icons #gh-hub .gh-channel > .gh-ico {
+    display: none;
+}
+
+body.gh-reading [class*="page_"] [class*="chatContent_"] {
+    width: 100%;
+    max-width: 1040px;
+    margin-inline: auto;
+}
+
+body.gh-clean [class*="channelTextArea_"] [aria-label="Send a gift"],
+body.gh-clean [class*="channelTextArea_"] [aria-label="Open sticker picker"],
+body.gh-clean [class*="channelTextArea_"] [aria-label="Apps"] {
+    display: none !important;
+}
+
+body.gh-big-avatars li[class*="messageListItem_"] img[class*="avatar_"] {
+    width: 48px !important;
+    height: 48px !important;
+    margin-top: -2px;
+}
+
+body.gh-big-avatars li[class*="messageListItem_"] [class*="cozy_"][class*="wrapper_"] {
+    padding-left: 84px !important;
+}
+
+/* ───── quick settings drawer ───── */
+
+.gh-prefs {
+    width: 320px;
+    padding-bottom: 0;
+}
+
+.gh-prefs-scroll {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    margin: 0 -6px;
+    padding: 0 6px 16px;
+    overflow: hidden auto;
+}
+
+.gh-prefs h4 {
+    margin: 10px 0 0;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gh-layouts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.gh-drawer .gh-layout-pick {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 2px 6px;
+    border: 1px solid var(--_line);
+    border-radius: 10px;
+    background: none;
+    color: var(--_muted);
+    font: 600 11px var(--font-primary);
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease;
+}
+
+.gh-drawer .gh-layout-pick:hover,
+.gh-drawer .gh-layout-pick.gh-on {
+    border-color: var(--_accent);
+    color: var(--_text);
+}
+
+/* tiny diagram of each layout: i:first = hub, i:last = chat */
+.gh-mini {
+    display: flex;
+    gap: 2px;
+    width: 44px;
+    height: 30px;
+}
+
+.gh-mini i {
+    border-radius: 3px;
+    background: var(--_line);
+}
+
+.gh-mini i:first-child {
+    flex: 0 0 13px;
+    background: var(--_accent);
+    opacity: 0.75;
+}
+
+.gh-mini i:last-child {
+    flex: 1;
+}
+
+.gh-mini-right {
+    flex-direction: row-reverse;
+}
+
+.gh-mini-top {
+    flex-direction: column;
+}
+
+.gh-mini-top i:first-child {
+    flex-basis: 7px;
+}
+
+.gh-mini-rail i:first-child {
+    flex-basis: 5px;
+}
+
+.gh-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.gh-drawer .gh-swatch {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px var(--_line);
+    transition: box-shadow 160ms ease;
+}
+
+.gh-drawer .gh-swatch.gh-on {
+    box-shadow: 0 0 0 2px var(--gh-raised, #fff), 0 0 0 4px var(--_text);
+}
+
+.gh-drawer .gh-swatch-wide {
+    width: 48px;
+    border-radius: 9px;
+}
+
+.gh-chip-blossom { background: linear-gradient(120deg, hsl(325deg 100% 84%), hsl(262deg 100% 86%), hsl(22deg 100% 86%)); }
+.gh-chip-aurora { background: linear-gradient(120deg, hsl(168deg 85% 76%), hsl(205deg 100% 84%), hsl(268deg 100% 86%)); }
+.gh-chip-sunset { background: linear-gradient(120deg, hsl(48deg 100% 80%), hsl(24deg 100% 80%), hsl(340deg 100% 84%)); }
+.gh-chip-ocean { background: linear-gradient(120deg, hsl(184deg 85% 80%), hsl(206deg 100% 82%), hsl(232deg 100% 86%)); }
+.gh-chip-mono { background: linear-gradient(120deg, hsl(220deg 12% 96%), hsl(220deg 10% 78%)); }
+
+.gh-segment {
+    display: flex;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--_inset);
+}
+
+.gh-drawer .gh-segment button {
+    flex: 1;
+    height: 28px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--_muted);
+    font: 600 12px var(--font-primary);
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+.gh-drawer .gh-segment button.gh-on {
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+}
+/* ═════ v4: editable groups ═════ */
+
+.gh-tile-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.gh-tile-wrap.gh-dragging {
+    opacity: 0.35;
+}
+
+.gh-editing .gh-tile {
+    cursor: grab;
+}
+
+.gh-editing .gh-tile:hover .gh-tile-icon {
+    transform: none;
+}
+
+.gh-overlay .gh-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--_line);
+    border-radius: 18px;
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    font: 600 13px var(--font-primary);
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.gh-overlay .gh-pill:hover {
+    border-color: var(--_accent);
+}
+
+.gh-overlay .gh-pill.gh-on {
+    border-color: var(--_accent);
+    background: var(--_accent);
+    color: #fff;
+}
+
+.gh-overlay .gh-pill:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.gh-overlay-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: min(720px, 90vw);
+    margin: 4px auto 0;
+    animation: gh-slide var(--gh-dur) var(--gh-ease) both;
+}
+
+.gh-overlay-bar .gh-search {
+    flex: 1;
+    min-width: 220px;
+    background: var(--gh-raised, var(--_solid));
+}
+
+
+.gh-note {
+    flex: 1;
+    color: var(--_muted);
+    font-size: 12px;
+}
+
+.gh-error {
+    flex-basis: 100%;
+    color: #da373c;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.gh-hint {
+    margin: 0;
+    color: var(--_muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* group header while editing */
+.gh-group-edit {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 4px;
+}
+
+.gh-group-edit input {
+    flex: 1;
+    min-width: 140px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--_line);
+    border-radius: 10px;
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    font: 600 14px var(--font-primary);
+    outline: 0;
+}
+
+.gh-group-edit input:focus {
+    border-color: var(--_accent);
+}
+
+.gh-overlay .gh-swatch {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px var(--_line);
+}
+
+.gh-overlay .gh-swatch.gh-on {
+    box-shadow: 0 0 0 2px var(--gh-raised, #fff), 0 0 0 4px var(--_text);
+}
+
+.gh-overlay .gh-group-edit .gh-tool {
+    width: 32px;
+    height: 32px;
+}
+
+.gh-overlay .gh-tool:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.gh-overlay .gh-tool.gh-danger:hover {
+    color: #da373c;
+}
+
+.gh-group-open.gh-drop {
+    border-style: dashed;
+    border-color: var(--_accent);
+    background: var(--_accent-soft);
+}
+
+.gh-ungrouped {
+    border-style: dashed;
+}
+
+.gh-ungrouped .gh-group-head {
+    cursor: default;
+}
+
+.gh-overlay .gh-new-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    border: 1px dashed var(--_edge);
+    border-radius: 20px;
+    background: none;
+    color: var(--_muted);
+    font: 600 14px var(--font-primary);
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease;
+}
+
+.gh-overlay .gh-new-group:hover {
+    border-color: var(--_accent);
+    color: var(--_accent);
+}
+
+/* "move to" menu under a server */
+.gh-move-menu {
+    position: absolute;
+    top: calc(100% - 4px);
+    left: 50%;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 190px;
+    max-height: 260px;
+    margin-left: -95px;
+    padding: 6px;
+    overflow: hidden auto;
+    border: 1px solid var(--_edge);
+    border-radius: 14px;
+    background: var(--gh-raised, var(--_solid));
+    box-shadow: 0 16px 40px rgb(0 0 0 / 22%);
+    animation: gh-slide 180ms var(--gh-ease) both;
+}
+
+.gh-move-menu small,
+.gh-move-empty {
+    padding: 4px 8px;
+    color: var(--_muted);
+    font-size: 11px;
+}
+
+.gh-overlay .gh-move-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--_text);
+    font: 500 13px var(--font-primary);
+    text-align: left;
+    cursor: pointer;
+}
+
+.gh-overlay .gh-move-menu button:hover {
+    background: var(--_hover);
+}
+
+.gh-move-menu i {
+    width: 10px;
+    height: 10px;
+    flex: none;
+    border-radius: 50%;
+}
+
+/* drawers open on the side away from the hub */
+body.gh-layout-right .gh-drawer {
+    right: auto;
+    left: 14px;
+}
+
+/* the "move to" menu must sit above the tiles and groups that follow it */
+.gh-tile-wrap:has(> .gh-move-menu) {
+    z-index: 60;
+}
+
+.gh-group-open:has(.gh-move-menu) {
+    position: relative;
+    z-index: 60;
+}
+
+.gh-move-menu {
+    z-index: 61;
+    background: var(--gh-base, var(--background-base-lowest));
+}
+
+/* open group header: title on the left, pin on the right */
+.gh-group-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gh-group-bar .gh-group-head {
+    flex: 1;
+    min-width: 0;
+}
+
+.gh-overlay .gh-group-head:disabled {
+    cursor: default;
+}
+
+.gh-overlay .gh-group-bar .gh-tool {
+    width: 32px;
+    height: 32px;
+}
+
+.gh-overlay .gh-tool.gh-on {
+    color: var(--_accent);
+}
+
+/* ───── overlay fields: same rounded shape as the big search, no square focus box ───── */
+
+.gh-overlay {
+    --_radius: var(--gh-radius, 18px);
+    --_small: var(--gh-radius-small, 10px);
+}
+
+.gh-overlay-bar {
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.gh-overlay .gh-field {
+    flex: 1;
+    min-width: 260px;
+    height: 46px;
+    padding: 0 5px 0 16px;
+    gap: 10px;
+    border-radius: 23px;
+    font-size: 14px;
+    background: var(--gh-raised, var(--_solid));
+    box-shadow: 0 10px 30px rgb(0 0 0 / 10%);
+}
+
+.gh-overlay .gh-field:focus-within {
+    box-shadow: 0 0 0 3px var(--_accent-soft), 0 10px 30px rgb(0 0 0 / 10%);
+}
+
+.gh-overlay .gh-field input {
+    outline: 0;
+    box-shadow: none;
+}
+
+.gh-overlay .gh-field .gh-pill {
+    height: 36px;
+    padding: 0 18px;
+}
+
+.gh-overlay .gh-search-big:focus-within {
+    box-shadow: 0 0 0 3px var(--_accent-soft), 0 14px 40px rgb(0 0 0 / 12%);
+}
+
+.gh-overlay .gh-pill {
+    height: 40px;
+    border-radius: 20px;
+}
+
+.gh-overlay .gh-text-btn {
+    flex: none;
+    padding: 6px 4px;
+    border: 0;
+    background: none;
+    color: var(--_muted);
+    font: 600 13px var(--font-primary);
+    cursor: pointer;
+    transition: color 160ms ease;
+}
+
+.gh-overlay .gh-text-btn:hover {
+    color: var(--_accent);
+}
+
+.gh-group-edit input {
+    border-radius: 17px;
+}
+
+/* ───── hub: page buttons (Home, Quests, Shop, Nitro, Discover) and larger tools ───── */
+
+.gh-pages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+#gh-hub .gh-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 9px 2px 7px;
+    border-radius: var(--_small);
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 600;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+#gh-hub .gh-page:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+#gh-hub .gh-page:active .gh-ico {
+    transform: scale(0.92);
+}
+
+#gh-hub .gh-page .gh-ico {
+    transition: transform 160ms var(--gh-ease);
+}
+
+#gh-hub .gh-page.gh-on {
+    background: var(--_accent-soft);
+    color: var(--_accent);
+}
+
+.gh-tools {
+    gap: 4px;
+}
+
+#gh-hub .gh-tools .gh-tool {
+    flex: 1;
+    width: auto;
+    height: 38px;
+    border-radius: var(--_small);
+}
+
+#gh-hub .gh-tools .gh-ico {
+    width: 20px;
+    height: 20px;
+}
+
+/* top bar: icons only, in line */
+body.gh-layout-top .gh-pages {
+    display: flex;
+    gap: 2px;
+}
+
+body.gh-layout-top #gh-hub .gh-page {
+    padding: 8px;
+}
+
+body.gh-layout-top #gh-hub .gh-page span {
+    display: none;
+}
+
+body.gh-layout-top #gh-hub .gh-tools .gh-tool {
+    flex: none;
+    width: 36px;
+    height: 36px;
+}
+
+body.gh-layout-top .gh-top .gh-search {
+    width: 150px;
+}
+
+
+/* ═════ v6: custom member list ═════ */
+
+body.gh-members-on [class*="page_"] [class*="membersWrap_"] {
+    position: relative;
+    width: var(--gh-members-width, 264px) !important;
+    min-width: var(--gh-members-width, 264px) !important;
+}
+
+/* Discord's own list stays underneath, invisible: it still loads members as we scroll it */
+body.gh-members-on [class*="page_"] [class*="membersWrap_"] > :not(#gh-members) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+#gh-members {
+    --_inset: var(--gh-inset, rgb(127 127 127 / 12%));
+    --_solid: var(--gh-solid, var(--background-base-low));
+    --_edge: var(--gh-edge, rgb(127 127 127 / 25%));
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_accent-soft: var(--gh-accent-soft, rgb(235 69 158 / 16%));
+    --_small: var(--gh-radius-small, 10px);
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    color: var(--_text);
+    font-family: var(--font-primary);
+    font-size: 14px;
+}
+
+.gh-mlist {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.gh-mlist-top {
+    padding: 10px 10px 6px;
+}
+
+#gh-members .gh-tool {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--_muted);
+    cursor: pointer;
+}
+
+#gh-members .gh-tool:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+.gh-mlist-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    contain: strict;
+}
+
+#gh-members .gh-mrow {
+    position: absolute;
+    top: 0;
+    left: 6px;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--_small);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    will-change: transform;
+}
+
+#gh-members button.gh-mrow {
+    cursor: pointer;
+}
+
+#gh-members .gh-mmember {
+    transition: background-color 140ms ease;
+}
+
+#gh-members .gh-mmember:hover {
+    background: var(--_hover);
+}
+
+#gh-members .gh-mmember.gh-on {
+    background: var(--_accent-soft);
+}
+
+#gh-members .gh-mmember.gh-off .gh-avatar,
+#gh-members .gh-mmember.gh-off .gh-member-names {
+    opacity: 0.45;
+}
+
+#gh-members .gh-mgroup {
+    align-items: flex-end;
+    gap: 5px;
+    padding-bottom: 7px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+#gh-members .gh-mgroup:hover {
+    color: var(--_text);
+}
+
+#gh-members .gh-mgroup span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gh-members .gh-mgroup small {
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+#gh-members .gh-mgroup .gh-ico {
+    margin-bottom: 1px;
+    transition: transform 160ms ease;
+}
+
+#gh-members .gh-mgroup.gh-collapsed .gh-ico {
+    transform: rotate(-90deg);
+}
+
+#gh-members .gh-member-names {
+    flex: 1;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+#gh-members .gh-member-names em {
+    margin-left: 6px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--_inset);
+    color: var(--_muted);
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: 1px;
+}
+
+/* placeholder for members Discord has not sent yet */
+#gh-members .gh-mblank i {
+    width: 30px;
+    height: 30px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--_inset);
+}
+
+#gh-members .gh-mblank b {
+    width: 46%;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--_inset);
+}
+
+/* selected member: a card pinned to the bottom of the pane */
+.gh-mcard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 6px;
+    padding: 10px;
+    border: 1px solid var(--_edge);
+    border-radius: calc(var(--_small) + 4px);
+    background: var(--gh-raised, var(--_solid));
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 12%);
+    animation: gh-slide var(--gh-dur, 300ms) var(--gh-ease, ease) both;
+}
+
+.gh-mcard-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gh-avatar-lg {
+    width: 40px;
+    height: 40px;
+}
+
+.gh-mcard .gh-actions {
+    padding: 0;
+}
+
+#gh-members .gh-actions button {
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--_line);
+    border-radius: 8px;
+    background: none;
+    color: inherit;
+    font: 600 12px var(--font-primary);
+    cursor: pointer;
+    transition: border-color 140ms ease, color 140ms ease;
+}
+
+#gh-members .gh-actions button:hover {
+    border-color: var(--_accent);
+    color: var(--_accent);
+}
+
+#gh-members .gh-actions button.gh-danger {
+    color: #da373c;
+}
+
+#gh-members .gh-actions button.gh-danger:hover {
+    border-color: #da373c;
+}
+
+body.gh-compact #gh-members {
+    font-size: 13px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@keyframes gh-rail-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes gh-rail-icons {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+
+
+
+
+/* layouts: shared flex rules for Right and Top bar */
+body.gh-layout-right #app-mount [class*="base_"] > [class*="content_"] {
+    display: flex !important;
+    gap: var(--gh-gap, 10px);
+}
+
+body.gh-layout-right #app-mount [class*="content_"] > [class*="page_"],
+body.gh-layout-top #app-mount [class*="content_"] > [class*="page_"] {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* server menu row under the server button */
+#gh-hub .gh-guild-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 8px 0;
+    padding: 0 10px;
+    height: 32px;
+    border-radius: var(--_small);
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 600;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+#gh-hub .gh-guild-menu:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+#gh-hub .gh-guild-menu span {
+    flex: 1;
+}
+
+body.gh-layout-top #gh-hub .gh-guild-menu {
+    order: 1;
+    flex: none;
+    margin: 0;
+    padding: 0 8px;
+}
+
+body.gh-layout-top #gh-hub .gh-guild-menu span {
+    display: none;
+}
+
+/* ═════ custom server menu ═════ */
+
+/* Discord's own menu, while we read it or press an entry in it for you */
+body.gh-proxy [class*="layerContainer_"] [role="menu"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#gh-hub .gh-guild-menu.gh-on {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+#gh-hub .gh-guild-menu > .gh-ico:last-child {
+    transition: transform 200ms var(--gh-ease, ease);
+}
+
+#gh-hub .gh-guild-menu.gh-on > .gh-ico:last-child {
+    transform: rotate(180deg);
+}
+
+.gh-smenu {
+    flex: none;
+    max-height: 52%;
+    margin: 6px 8px 0;
+    padding: 6px;
+    overflow: hidden auto;
+    border: 1px solid var(--_line);
+    border-radius: calc(var(--_small) + 2px);
+    background: var(--_inset);
+    animation: gh-slide var(--gh-dur, 300ms) var(--gh-ease, ease) both;
+}
+
+.gh-smenu-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.gh-smenu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+#gh-hub .gh-smenu-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 32px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--_text);
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+#gh-hub .gh-smenu-row span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gh-hub .gh-smenu-row:hover {
+    background: var(--_hover);
+}
+
+#gh-hub .gh-smenu-row.gh-accent {
+    margin-bottom: 4px;
+    background: var(--_accent-soft);
+    color: var(--_accent);
+    font-weight: 600;
+}
+
+#gh-hub .gh-smenu-row.gh-danger {
+    color: #da373c;
+}
+
+#gh-hub .gh-smenu-row.gh-danger:hover {
+    background: rgb(218 55 60 / 12%);
+}
+
+/* small on/off switch for the checkbox entries */
+.gh-switch {
+    position: relative;
+    width: 28px;
+    height: 16px;
+    flex: none;
+    border-radius: 8px;
+    background: var(--_line);
+    transition: background-color 160ms ease;
+}
+
+.gh-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+    transition: transform 160ms var(--gh-ease, ease);
+}
+
+.gh-switch.gh-on {
+    background: var(--_accent);
+}
+
+.gh-switch.gh-on::after {
+    transform: translateX(12px);
+}
+
+body.gh-layout-top .gh-smenu {
+    position: absolute;
+    top: 58px;
+    left: 8px;
+    z-index: 20;
+    width: 300px;
+    max-height: 70vh;
+    margin: 0;
+    background: var(--gh-raised, var(--_solid));
+    box-shadow: 0 18px 40px rgb(0 0 0 / 22%);
+}
+
+body.gh-layout-top .gh-hub-inner {
+    overflow: visible;
+}
+
+/* ═════ channel editor ═════ */
+
+.gh-ce-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 4px 6px;
+}
+
+.gh-ce-bar strong {
+    flex: 1;
+    font-family: var(--font-display);
+}
+
+#gh-hub .gh-ce-done {
+    height: 28px;
+    padding: 0 14px;
+    border-radius: 14px;
+    background: var(--_accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.gh-ce .gh-hint {
+    padding: 0 4px 6px;
+}
+
+.gh-ce-cat {
+    margin-top: 6px;
+    padding: 4px;
+    border: 1px dashed transparent;
+    border-radius: calc(var(--_small) + 2px);
+    transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.gh-ce-cat.gh-drop {
+    border-color: var(--_accent);
+    background: var(--_accent-soft);
+}
+
+.gh-ce-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 4px 0 6px;
+    border-top: 2px solid transparent;
+    border-radius: 8px;
+    color: var(--_muted);
+    cursor: grab;
+    transition: background-color 140ms ease;
+}
+
+.gh-ce-row:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+/* dropping on a row puts the channel above it */
+.gh-ce-row.gh-drop {
+    border-top-color: var(--_accent);
+    border-radius: 0 0 8px 8px;
+}
+
+.gh-ce-row.gh-dragging {
+    opacity: 0.35;
+}
+
+.gh-ce-row .gh-tool {
+    width: 26px !important;
+    height: 26px !important;
+    flex: none !important;
+    opacity: 0;
+}
+
+.gh-ce-row:hover .gh-tool,
+.gh-ce-head .gh-tool {
+    opacity: 1;
+}
+
+#gh-hub .gh-ce-row .gh-tool.gh-danger:hover {
+    color: #da373c;
+}
+
+.gh-ce-head {
+    cursor: default;
+}
+
+.gh-ce-catname {
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gh-ce-input {
+    flex: 1;
+    min-width: 0;
+    height: 26px;
+    padding: 0 8px;
+    border: 1px solid var(--_accent);
+    border-radius: 7px;
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    font: inherit;
+    outline: 0;
+}
+
+.gh-ce-add {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 2px;
+}
+
+.gh-ce-add .gh-segment {
+    flex: none;
+    padding: 2px;
+}
+
+#gh-hub .gh-ce-add .gh-segment button {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#gh-hub .gh-ce-add .gh-segment button.gh-on {
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+}
+
+.gh-ce-add .gh-tool {
+    width: 26px !important;
+    height: 26px !important;
+    flex: none !important;
+}
+
+#gh-hub .gh-ce-new {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 8px;
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#gh-hub .gh-ce-new:hover {
+    background: var(--_hover);
+    color: var(--_accent);
+}
+
+#gh-hub .gh-ce-newcat {
+    justify-content: center;
+    height: 36px;
+    margin-top: 10px;
+    border: 1px dashed var(--_edge);
+}
+
+/* ═════ server banner above the member list ═════ */
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"] {
+    display: flex !important;
+    flex-direction: column;
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::before {
+    content: "";
+    flex: none;
+    height: 124px;
+    margin: 8px 8px 4px;
+    border-radius: calc(var(--gh-radius-small, 10px) + 2px);
+    background: var(--gh-banner) center / cover no-repeat;
+    box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+    animation: gh-fade 300ms ease both;
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"] > [class*="members_"] {
+    flex: 1 1 0;
+    height: auto !important;
+    min-height: 0;
+}
+
+/* with the Glasshouse member list on, it starts under the banner */
+body.gh-has-banner.gh-members-on #gh-members {
+    top: 136px;
+}
+
+/* ═════ people in voice channels, listed under the channel ═════ */
+
+.gh-voice-users {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 1px 0 4px 26px;
+    padding-left: 8px;
+    border-left: 2px solid var(--_line);
+}
+
+#gh-hub .gh-voice-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 28px;
+    padding: 0 6px;
+    border-radius: 8px;
+    color: var(--_muted);
+    font-size: 13px;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+#gh-hub .gh-voice-user:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+.gh-voice-user img {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    border-radius: 50%;
+}
+
+.gh-voice-user span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-voice-user em {
+    flex: none;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: #da373c;
+    color: #fff;
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.gh-voice-user .gh-ico {
+    opacity: 0.7;
+}
+
+/* top bar: the channel row stays one line, so the list is left out there */
+body.gh-layout-top .gh-chwrap {
+    display: contents;
+}
+
+body.gh-layout-top .gh-voice-users {
+    display: none;
+}
+
+/* ═════ keep the hub's overlays under Discord's own menus and dialogs ═════ */
+
+.gh-overlay {
+    z-index: 900;
+}
+
+.gh-drawer {
+    z-index: 900;
+}
+
+.gh-focus-exit {
+    z-index: 890;
+}
+
+/* ═════ pings: counts on Home and the server button, and a strip of who pinged you ═════ */
+
+.gh-page-ico {
+    position: relative;
+    display: grid;
+}
+
+.gh-page-ico .gh-badge {
+    position: absolute;
+    top: -6px;
+    left: 14px;
+    box-shadow: 0 0 0 2px var(--_solid);
+}
+
+.gh-pings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 8px;
+    flex: none;
+    margin: 8px 8px 0;
+    padding: 8px 10px 10px;
+    border: 1px solid var(--_accent);
+    border-radius: calc(var(--_small) + 2px);
+    background: var(--_accent-soft);
+    animation: gh-slide var(--gh-dur, 300ms) var(--gh-ease, ease) both;
+}
+
+.gh-pings small {
+    flex-basis: 100%;
+    margin-bottom: -4px;
+    color: var(--_accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+#gh-hub .gh-ping {
+    transition: transform 160ms var(--gh-ease, ease);
+}
+
+#gh-hub .gh-ping:hover {
+    transform: translateY(-2px);
+}
+
+.gh-ping .gh-server-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    contain: none;
+}
+
+.gh-ping .gh-server-icon.gh-round,
+.gh-ping .gh-server-icon.gh-round img {
+    border-radius: 50%;
+}
+
+.gh-ping .gh-server-icon .gh-badge {
+    right: -6px;
+    bottom: -5px;
+}
+
+/* the count on a DM row and a channel row reads a little larger */
+#gh-hub .gh-channel .gh-badge {
+    min-width: 20px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 12px;
+}
+
+body.gh-layout-top .gh-pings {
+    order: 1;
+    flex-wrap: nowrap;
+    margin: 0;
+    padding: 4px 10px 4px 8px;
+}
+
+body.gh-layout-top .gh-pings small {
+    display: none;
+}
+
+/* ═════ banner, second pass: edge to edge, taller, name over a soft fade ═════ */
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"] {
+    position: relative;
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::before {
+    height: 156px;
+    margin: 0 0 6px;
+    border-radius: 0;
+    background:
+        linear-gradient(180deg, transparent 38%, rgb(0 0 0 / 72%)),
+        var(--gh-banner) center / cover no-repeat;
+    box-shadow: none;
+    animation: gh-banner-in 520ms var(--gh-ease, ease) both;
+}
+
+@keyframes gh-banner-in {
+    from { opacity: 0; transform: scale(1.04); }
+    to { opacity: 1; transform: none; }
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::after {
+    content: var(--gh-banner-name, "");
+    position: absolute;
+    top: 118px;
+    left: 14px;
+    right: 14px;
+    overflow: hidden;
+    color: #fff;
+    font: 700 17px/1.3 var(--font-display);
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 8px rgb(0 0 0 / 55%);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: gh-slide 420ms var(--gh-ease, ease) 120ms both;
+}
+
+body.gh-has-banner.gh-members-on #gh-members {
+    top: 162px;
+}
+
+body.gh-motion-off.gh-has-banner [class*="membersWrap_"]::before,
+body.gh-motion-off.gh-has-banner [class*="membersWrap_"]::after {
+    animation: none;
+}
+
+/* banner: no server name on it, so no dark fade either */
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::after {
+    content: none;
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::before {
+    background: var(--gh-banner) center / cover no-repeat;
+}
+
+/* banner: the member pane sits flush under the channel header, no gap above the image */
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"] {
+    margin-top: 0 !important;
+    border-top: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::before {
+    margin-top: 0;
+}
+
+/* banner: the member pane also runs to the right edge of the page, no gap beside the image */
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"] {
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-radius: 0 !important;
+}
+
+/* banner: rounded bottom corners, so it ends softly instead of on a hard line */
+body.gh-has-banner [class*="page_"] [class*="membersWrap_"]::before {
+    border-radius: 0 0 18px 18px;
+    box-shadow: 0 8px 20px -8px rgb(0 0 0 / 30%);
+}
+
+/* ═════ custom friends page ═════ */
+
+main[data-gh-friends] {
+    position: relative;
+}
+
+main[data-gh-friends] > :not(#gh-friends) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+#gh-friends {
+    --_inset: var(--gh-inset, rgb(127 127 127 / 12%));
+    --_solid: var(--gh-solid, var(--background-base-low));
+    --_edge: var(--gh-edge, rgb(127 127 127 / 25%));
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_accent-soft: var(--gh-accent-soft, rgb(235 69 158 / 16%));
+    --_small: var(--gh-radius-small, 10px);
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    color: var(--_text);
+    font-family: var(--font-primary);
+    font-size: 14px;
+}
+
+.gh-fr {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.gh-fr-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 24px 14px;
+    border-bottom: 1px solid var(--_line);
+}
+
+.gh-fr-head h1 {
+    margin: 0 8px 0 0;
+    font: 700 22px var(--font-display);
+    letter-spacing: -0.02em;
+}
+
+.gh-fr-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--_inset);
+}
+
+#gh-friends button {
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+#gh-friends .gh-fr-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 9px;
+    color: var(--_muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+#gh-friends .gh-fr-tab:hover {
+    color: var(--_text);
+}
+
+#gh-friends .gh-fr-tab.gh-on {
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+}
+
+.gh-fr-tab b {
+    padding: 0 6px;
+    border-radius: 8px;
+    background: var(--_accent-soft);
+    color: var(--_accent);
+    font-size: 11px;
+    line-height: 16px;
+}
+
+.gh-fr-search {
+    flex: 1;
+    min-width: 180px;
+    height: 36px;
+    border-radius: 18px;
+}
+
+#gh-friends .gh-fr-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--_line);
+    border-radius: 17px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+#gh-friends .gh-fr-pill:hover {
+    border-color: var(--_accent);
+}
+
+#gh-friends .gh-fr-pill.gh-on {
+    border-color: var(--_accent);
+    background: var(--_accent);
+    color: #fff;
+}
+
+#gh-friends .gh-fr-pill:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.gh-fr-add {
+    display: flex;
+    gap: 10px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--_line);
+    animation: gh-slide var(--gh-dur, 300ms) var(--gh-ease, ease) both;
+}
+
+.gh-fr-add .gh-search {
+    flex: 1;
+    max-width: 420px;
+    border-radius: 18px;
+}
+
+.gh-fr-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    padding: 6px 24px 28px;
+}
+
+.gh-fr h2 {
+    margin: 18px 0 10px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* active now: a row of people doing something */
+.gh-fr-strip {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 4px;
+    overflow: auto hidden;
+    scrollbar-width: none;
+}
+
+.gh-fr-strip::-webkit-scrollbar {
+    display: none;
+}
+
+#gh-friends .gh-fr-now {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+    width: 132px;
+    padding: 16px 10px 12px;
+    border: 1px solid var(--_edge);
+    border-radius: calc(var(--_small) + 8px);
+    background: var(--_inset);
+    text-align: center;
+    animation: gh-rise var(--gh-dur, 320ms) var(--gh-ease, ease) both;
+    animation-delay: calc(min(var(--i, 0), 12) * var(--gh-stagger, 7ms));
+    transition: transform 200ms var(--gh-ease, ease), box-shadow 200ms ease, border-color 200ms ease;
+}
+
+#gh-friends .gh-fr-now:hover {
+    border-color: var(--_accent);
+    box-shadow: var(--gh-shadow, 0 10px 24px rgb(0 0 0 / 16%));
+    transform: translateY(-2px);
+}
+
+.gh-fr-now strong,
+.gh-fr-now small {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-fr-now strong {
+    font-size: 13px;
+}
+
+.gh-fr-now small {
+    color: var(--_accent);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* the grid of friends */
+.gh-fr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.gh-fr-card {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px 4px 4px;
+    border: 1px solid var(--_edge);
+    border-radius: calc(var(--_small) + 6px);
+    background: var(--_inset);
+    animation: gh-rise var(--gh-dur, 320ms) var(--gh-ease, ease) both;
+    animation-delay: calc(min(var(--i, 0), var(--gh-stagger-cap, 12)) * var(--gh-stagger, 7ms));
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms var(--gh-ease, ease);
+}
+
+.gh-fr-card:hover {
+    border-color: var(--_accent);
+    box-shadow: var(--gh-shadow, 0 10px 24px rgb(0 0 0 / 16%));
+    transform: translateY(-1px);
+}
+
+.gh-fr-card.gh-off .gh-fr-main {
+    opacity: 0.5;
+}
+
+#gh-friends .gh-fr-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    padding: 8px;
+    border-radius: var(--_small);
+    text-align: left;
+}
+
+#gh-friends .gh-avatar {
+    flex: none;
+}
+
+#gh-friends .gh-status {
+    width: 11px;
+    height: 11px;
+}
+
+#gh-friends .gh-member-names {
+    flex: 1;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.gh-fr-tools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: none;
+}
+
+#gh-friends .gh-tool {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: var(--_muted);
+    opacity: 0;
+    transition: opacity 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.gh-fr-card:hover .gh-tool {
+    opacity: 1;
+}
+
+#gh-friends .gh-tool:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+#gh-friends .gh-tool.gh-danger:hover {
+    color: #da373c;
+}
+
+body.gh-motion-off #gh-friends * {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ═════ friends page, second pass: no shadows, Active now as a rich side column ═════ */
+
+.gh-fr-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.gh-fr-side {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: none;
+    width: 340px;
+    padding: 6px 20px 28px;
+    overflow: hidden auto;
+    border-left: 1px solid var(--_line);
+}
+
+.gh-fr-side h2 {
+    margin-bottom: 2px;
+}
+
+/* flat cards: the border and a tint do the work, nothing lifts or glows */
+.gh-fr-card,
+.gh-fr-card:hover,
+#gh-friends .gh-fr-now,
+#gh-friends .gh-fr-now:hover,
+#gh-friends .gh-fr-tab.gh-on {
+    box-shadow: none;
+    transform: none;
+}
+
+.gh-fr-card:hover {
+    background: var(--_hover);
+}
+
+#gh-friends .gh-fr-now {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: auto;
+    padding: 12px;
+    text-align: left;
+}
+
+#gh-friends .gh-fr-now:hover {
+    background: var(--_hover);
+}
+
+.gh-fr-now-head,
+.gh-fr-now-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.gh-fr-now-head small {
+    color: var(--_accent) !important;
+    font-weight: 600 !important;
+}
+
+/* what they are doing: artwork, title, and the two detail lines Discord gives */
+.gh-fr-now-body {
+    padding: 10px;
+    border-radius: var(--_small);
+    background: var(--_hover);
+}
+
+.gh-fr-art {
+    width: 52px;
+    height: 52px;
+    flex: none;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.gh-fr-art-blank {
+    display: grid;
+    place-items: center;
+    background: var(--_accent-soft);
+    color: var(--_accent);
+    font: 700 20px var(--font-display);
+    text-transform: uppercase;
+}
+
+.gh-fr-now-body .gh-member-names small {
+    font-size: 12px;
+}
+
+.gh-fr-quiet {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 22px 16px;
+    border: 1px dashed var(--_edge);
+    border-radius: calc(var(--_small) + 6px);
+    color: var(--_muted);
+    text-align: center;
+}
+
+.gh-fr-quiet strong {
+    color: var(--_text);
+}
+
+/* narrow windows: the column drops away rather than squeezing the grid */
+@container (max-width: 760px) {
+    .gh-fr-side {
+        display: none;
+    }
+}
+
+#gh-friends {
+    container-type: inline-size;
+}
+
+/* pings now sit inside the list and scroll with it: lighter, no heavy frame */
+.gh-channels > .gh-pings {
+    margin: 0 0 8px;
+    padding: 6px 8px 10px;
+    border: 0;
+    background: var(--_accent-soft);
+    animation: none;
+}
+
+body.gh-layout-top .gh-channels > .gh-pings {
+    flex: none;
+    margin: 0 6px 0 0;
+    padding: 4px 8px;
+}

@@ -1,0 +1,862 @@
+/**
+ * @name Glasshouse
+ * @author itsnik-scrpt
+ * @version 0.3.0
+ * @description Floating frosted-glass panels over a soft backdrop. Light by default (set Discord Appearance to Light); also has a dark variant.
+ */
+
+/* ───────────────────────── 1. KNOBS ─────────────────────────
+   Change these, save, and Discord updates live.
+   The Glasshouse plugin overrides the same variables from its settings page. */
+:root {
+  --gh-accent-h: 325;
+  --gh-accent-s: 78%;
+  --gh-accent-l: 52%;
+
+  --gh-panel-alpha: .52;    /* 0 = clear glass, 1 = solid */
+  --gh-blur: 26px;          /* blur behind panels */
+  --gh-gap: 10px;           /* space between panels */
+  --gh-radius: 18px;        /* panel corner rounding */
+  --gh-radius-small: 10px;  /* rows, buttons, inputs */
+
+  --gh-font: "Segoe UI Variable Text", "Inter", "Segoe UI", system-ui, sans-serif;
+  --gh-font-display: "Segoe UI Variable Display", "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --gh-accent: hsl(var(--gh-accent-h) var(--gh-accent-s) var(--gh-accent-l));
+  --gh-accent-soft: hsl(var(--gh-accent-h) var(--gh-accent-s) var(--gh-accent-l) / .16);
+  --gh-accent-glow: hsl(var(--gh-accent-h) var(--gh-accent-s) var(--gh-accent-l) / .4);
+}
+
+/* LIGHT (the main design). Discord: Settings → Appearance → Light */
+.theme-light {
+  /* For an image use: url("https://...") center / cover no-repeat */
+  --gh-backdrop:
+    radial-gradient(1100px 760px at 8% 4%, hsl(325 100% 86%), transparent 62%),
+    radial-gradient(1000px 720px at 94% 96%, hsl(262 100% 88%), transparent 60%),
+    radial-gradient(760px 520px at 78% 8%, hsl(22 100% 88%), transparent 62%),
+    radial-gradient(700px 520px at 22% 96%, hsl(195 100% 90%), transparent 62%),
+    hsl(320 70% 95%);
+  --gh-base: hsl(320 70% 95%);
+
+  --gh-glass: hsl(0 0% 100% / var(--gh-panel-alpha));
+  --gh-solid: hsl(320 60% 98.5% / .9);
+  --gh-raised: hsl(0 0% 100% / .96);
+  --gh-inset: hsl(0 0% 100% / .5);
+  --gh-edge: hsl(0 0% 100% / .75);
+  --gh-edge-strong: hsl(var(--gh-accent-h) 40% 40% / .16);
+  --gh-line: hsl(var(--gh-accent-h) 40% 35% / .1);
+  --gh-hover: hsl(var(--gh-accent-h) 60% 40% / .07);
+  --gh-shadow: 0 12px 34px hsl(var(--gh-accent-h) 50% 35% / .14), 0 2px 6px hsl(var(--gh-accent-h) 50% 35% / .06);
+  --gh-shine: inset 0 1px 0 hsl(0 0% 100% / .9);
+  --gh-saturate: 1.7;
+  --gh-link: hsl(var(--gh-accent-h) 80% 40%);
+  --gh-scroll: hsl(var(--gh-accent-h) 40% 35% / .22);
+}
+
+/* DARK variant, used when Discord is set to Dark / Ash / Onyx */
+.theme-dark,
+.theme-darker,
+.theme-midnight {
+  --gh-backdrop:
+    radial-gradient(1200px 800px at 10% 6%, hsl(322 80% 34%), transparent 62%),
+    radial-gradient(1000px 720px at 92% 94%, hsl(265 75% 34%), transparent 60%),
+    radial-gradient(700px 500px at 76% 10%, hsl(345 85% 36% / .7), transparent 62%),
+    hsl(300 40% 9%);
+  --gh-base: hsl(300 40% 9%);
+
+  --gh-glass: hsl(var(--gh-accent-h) 30% 9% / var(--gh-panel-alpha));
+  --gh-solid: hsl(var(--gh-accent-h) 28% 9% / .92);
+  --gh-raised: hsl(var(--gh-accent-h) 24% 13% / .97);
+  --gh-inset: hsl(0 0% 0% / .28);
+  --gh-edge: hsl(0 0% 100% / .1);
+  --gh-edge-strong: hsl(0 0% 100% / .17);
+  --gh-line: hsl(0 0% 100% / .08);
+  --gh-hover: hsl(0 0% 100% / .06);
+  --gh-shadow: 0 10px 34px hsl(0 0% 0% / .4);
+  --gh-shine: inset 0 1px 0 hsl(0 0% 100% / .08);
+  --gh-saturate: 1.35;
+  --gh-link: hsl(var(--gh-accent-h) 92% 76%);
+  --gh-scroll: hsl(0 0% 100% / .16);
+}
+
+/* ───────────────────────── 2. DISCORD VARIABLES ─────────────────────────
+   Popouts, menus, modals and settings read these, so they get a near-solid frosted colour. */
+.theme-light,
+.theme-dark,
+.theme-darker,
+.theme-midnight {
+  --background-base-lowest: var(--gh-solid);
+  --background-base-lower: var(--gh-solid);
+  --background-base-low: var(--gh-solid);
+  --background-surface-high: var(--gh-raised);
+  --background-surface-higher: var(--gh-raised);
+  --background-surface-highest: var(--gh-raised);
+  --bg-surface-overlay: var(--gh-solid);
+  --bg-surface-raised: var(--gh-raised);
+  --background-floating: var(--gh-solid);
+  --modal-background: var(--gh-solid);
+  --modal-footer-background: var(--gh-hover);
+  --chat-background-default: var(--gh-inset);
+  --card-background-default: var(--gh-inset);
+  --interactive-background-hover: var(--gh-hover);
+  --background-gradient-app-frame: transparent;
+  --app-frame-background: transparent;
+  --app-frame-border: transparent;
+  --border-subtle: var(--gh-line);
+  --border-muted: var(--gh-line);
+  --border-normal: var(--gh-line);
+  --border-strong: var(--gh-edge-strong);
+
+  --brand-500: var(--gh-accent);
+  --brand-experiment: var(--gh-accent);
+  --bg-brand: var(--gh-accent);
+  --background-brand: var(--gh-accent);
+  --background-accent: var(--gh-accent);
+  --control-primary-background-default: var(--gh-accent);
+  --control-primary-background-hover: hsl(var(--gh-accent-h) var(--gh-accent-s) calc(var(--gh-accent-l) - 6%));
+  --control-primary-background-active: hsl(var(--gh-accent-h) var(--gh-accent-s) calc(var(--gh-accent-l) - 11%));
+  --button-filled-brand-background: var(--gh-accent);
+  --checkbox-background-selected-default: var(--gh-accent);
+  --radio-background-selected-default: var(--gh-accent);
+  --text-link: var(--gh-link);
+  --text-brand: var(--gh-link);
+  --mention-foreground: var(--gh-link);
+  --mention-background: var(--gh-accent-soft);
+
+  --font-primary: var(--gh-font);
+  --font-display: var(--gh-font-display);
+}
+
+/* ───────────────────────── 3. BACKDROP ───────────────────────── */
+body {
+  background: var(--gh-base) !important;
+}
+#app-mount {
+  background: var(--gh-backdrop) !important;
+}
+/* Every wrapper between the backdrop and the panels becomes see-through */
+#app-mount [class*="appAsidePanelWrapper_"],
+#app-mount [class*="notAppAsidePanel_"],
+#app-mount [class*="app_"],
+#app-mount [class*="app_"] > [class*="bg_"],
+#app-mount [class*="layers_"],
+#app-mount [class*="layers_"] > [class*="layer_"],
+#app-mount [class*="base_"] > [class*="content_"],
+#app-mount [class*="content_"] > [class*="sidebar_"],
+#app-mount [class*="base_"] > [class*="bar_"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+/* Window title bar blends into the backdrop */
+#app-mount [class*="base_"] > [class*="bar_"] {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ───────────────────────── 4. THE PANELS ─────────────────────────
+   Four floating sheets: servers, channels, the page (chat), and the user dock. */
+#app-mount nav[class*="guilds_"],
+#app-mount [class*="sidebarList_"],
+#app-mount [class*="content_"] > [class*="page_"],
+#app-mount section[class*="panels_"] {
+  background: var(--gh-glass) !important;
+  border: 1px solid var(--gh-edge) !important;
+  border-radius: var(--gh-radius) !important;
+  box-shadow: var(--gh-shadow), var(--gh-shine);
+  overflow: hidden;
+}
+
+/* Inside a panel nothing paints its own slab; the glass shows through */
+#app-mount nav[class*="guilds_"],
+#app-mount [class*="sidebarList_"],
+#app-mount [class*="content_"] > [class*="page_"] {
+  --background-base-lowest: transparent;
+  --background-base-lower: transparent;
+  --background-base-low: transparent;
+  --background-surface-high: var(--gh-inset);
+  --bg-surface-raised: var(--gh-inset);
+}
+
+/* Spacing around and between panels (Discord lays these out on a grid) */
+#app-mount [class*="base_"] > [class*="content_"] {
+  padding: 0 var(--gh-gap) var(--gh-gap) var(--gh-gap);
+  column-gap: var(--gh-gap);
+  box-sizing: border-box;
+}
+#app-mount [class*="content_"] > [class*="sidebar_"] {
+  border: 0 !important;
+  overflow: visible;
+}
+#app-mount [class*="content_"] > [class*="sidebar_"]::after {
+  display: none !important; /* stock strip under the lists */
+}
+
+/* Server rail */
+[class*="guildSeparator_"] {
+  background: var(--gh-edge-strong) !important;
+}
+nav[class*="guilds_"] [class*="pill_"] > span {
+  background: var(--gh-accent) !important;
+  box-shadow: 0 0 10px var(--gh-accent-glow);
+}
+
+/* User dock: floats above the bottom of the server rail and channel list */
+#app-mount section[class*="panels_"] {
+  --custom-panels-spacing: 8px;
+  background: var(--gh-solid) !important;
+  border-color: var(--gh-edge) !important;
+  border-radius: calc(var(--gh-radius) - 4px) !important;
+  box-shadow: 0 10px 28px hsl(var(--gh-accent-h) 50% 25% / .22), var(--gh-shine);
+}
+#app-mount section[class*="panels_"] > * {
+  background: transparent !important;
+}
+
+/* ───────────────────────── 5. CHANNEL LIST ───────────────────────── */
+[class*="sidebarList_"] header {
+  border-bottom: 1px solid var(--gh-line);
+  box-shadow: none !important;
+}
+[class*="sidebarList_"] a[class*="link_"] {
+  border-radius: var(--gh-radius-small) !important;
+  transition: background-color .12s ease, box-shadow .12s ease, transform .12s ease;
+}
+[class*="sidebarList_"] a[class*="link_"]:hover {
+  background: var(--gh-hover) !important;
+  transform: translateX(2px);
+}
+/* current channel: accent wash with a bright left edge */
+[class*="sidebarList_"] [class*="modeSelected_"] a[class*="link_"],
+[class*="sidebarList_"] a[class*="link_"][aria-current="page"] {
+  background: linear-gradient(90deg, var(--gh-accent-soft), transparent 90%) !important;
+  box-shadow: inset 3px 0 0 var(--gh-accent);
+}
+
+/* ───────────────────────── 6. CHAT ───────────────────────── */
+[class*="page_"] [class*="chat_"],
+[class*="page_"] [class*="chatContent_"],
+[class*="page_"] [class*="chat_"] > [class*="content_"],
+[class*="page_"] section[class*="title_"],
+[class*="page_"] [class*="subtitleContainer_"],
+[class*="page_"] [class*="subtitleContainer_"] > section {
+  background: transparent !important;
+}
+/* channel header */
+[class*="page_"] section[class*="title_"],
+[class*="page_"] [class*="subtitleContainer_"] > section {
+  border-bottom: 1px solid var(--gh-line) !important;
+  box-shadow: none !important;
+}
+[class*="page_"] section[class*="title_"]::after {
+  display: none;
+}
+
+/* messages */
+li[class*="messageListItem_"] > [class*="message_"] {
+  margin-left: 8px;
+  margin-right: 8px;
+  border-radius: var(--gh-radius-small);
+  transition: background-color .1s ease;
+}
+li[class*="messageListItem_"] > [class*="message_"]:hover,
+li[class*="messageListItem_"] > [class*="message_"][class*="selected_"] {
+  background: var(--gh-hover) !important;
+}
+li[class*="messageListItem_"] > [class*="mentioned_"] {
+  background: linear-gradient(90deg, var(--gh-accent-soft), transparent 75%) !important;
+}
+li[class*="messageListItem_"] > [class*="mentioned_"]::before {
+  background: var(--gh-accent) !important;
+  border-radius: 2px;
+}
+/* unread divider */
+[class*="divider_"][class*="isUnread_"] {
+  border-color: var(--gh-accent) !important;
+}
+[class*="divider_"][class*="isUnread_"] [class*="unreadPill_"] {
+  background: var(--gh-accent) !important;
+}
+
+/* embeds, code blocks, attachments: a second, lighter pane */
+article[class*="embedFull_"],
+[class*="markup_"] pre code {
+  background: var(--gh-inset) !important;
+  border: 1px solid var(--gh-line) !important;
+  border-radius: var(--gh-radius-small) !important;
+}
+article[class*="embedFull_"] {
+  border-left: 3px solid var(--gh-accent) !important;
+}
+
+/* message box */
+[class*="page_"] form[class*="form_"] {
+  background: transparent !important;
+}
+/* Discord floats the message box over the end of the message list, so the box
+   has to sit above the messages and be opaque, or they show through it. */
+[class*="page_"] form[class*="form_"] {
+  position: relative;
+  z-index: 3;
+}
+#app-mount [class*="page_"] form [class*="channelTextArea_"] {
+  background: linear-gradient(var(--gh-inset), var(--gh-inset)), var(--gh-base) !important;
+}
+[class*="page_"] form [class*="channelTextArea_"] [class*="scrollableContainer_"] {
+  background: transparent !important;
+}
+[class*="page_"] form[class*="form_"]::before {
+  display: none; /* stock fade strip */
+}
+[class*="page_"] form [class*="channelTextArea_"] {
+  background: var(--gh-inset) !important;
+  border: 1px solid var(--gh-edge) !important;
+  border-radius: calc(var(--gh-radius) - 4px) !important;
+  box-shadow: 0 4px 14px hsl(var(--gh-accent-h) 50% 30% / .08);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+[class*="page_"] form [class*="channelTextArea_"]:focus-within {
+  border-color: var(--gh-accent) !important;
+  box-shadow: 0 0 0 3px var(--gh-accent-soft);
+}
+[class*="page_"] form [class*="channelTextArea_"] [class*="scrollableContainer_"],
+[class*="page_"] [class*="channelBottomBarArea_"] {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* ───────────────────────── 7. MEMBERS ─────────────────────────
+   An inset pane inside the page panel, with its own gap. */
+[class*="page_"] [class*="membersWrap_"] {
+  background: var(--gh-inset) !important;
+  border: 1px solid var(--gh-edge) !important;
+  border-radius: calc(var(--gh-radius) - 4px);
+  margin: var(--gh-gap);
+  margin-left: 0;
+  overflow: hidden;
+}
+[class*="membersWrap_"] [class*="members_"],
+[class*="membersWrap_"] [class*="members_"] > div {
+  background: transparent !important;
+}
+[class*="membersWrap_"] [class*="member_"] [class*="layout_"] {
+  border-radius: var(--gh-radius-small);
+}
+[class*="membersWrap_"] [class*="member_"]:hover [class*="layout_"] {
+  background: var(--gh-hover) !important;
+}
+
+/* ───────────────────────── 8. FLOATING THINGS ───────────────────────── */
+[class*="menu_"][role="menu"],
+[class*="autocomplete_"],
+[role="dialog"][class*="root_"] {
+  border: 1px solid var(--gh-edge) !important;
+  box-shadow: 0 18px 50px hsl(var(--gh-accent-h) 50% 20% / .28) !important;
+}
+[class*="menu_"][role="menu"] {
+  border-radius: calc(var(--gh-radius) - 4px) !important;
+}
+[class*="menu_"][role="menu"] [class*="item_"] {
+  border-radius: 8px !important;
+}
+[class*="menu_"][role="menu"] [class*="item_"][class*="focused_"]:not([class*="colorDanger_"]) {
+  background: var(--gh-accent) !important;
+  color: #fff !important;
+}
+[role="dialog"][class*="root_"] {
+  border-radius: var(--gh-radius) !important;
+}
+
+/* settings screen sits on the backdrop as one big sheet */
+[class*="standardSidebarView_"] {
+  background: var(--gh-glass) !important;
+  border: 1px solid var(--gh-edge);
+  border-radius: var(--gh-radius);
+  margin: var(--gh-gap);
+  overflow: hidden;
+}
+[class*="standardSidebarView_"] [class*="sidebarRegionScroller_"],
+[class*="standardSidebarView_"] [class*="contentRegion_"],
+[class*="standardSidebarView_"] [class*="contentRegionScroller_"] {
+  background: transparent !important;
+}
+
+/* ───────────────────────── 9. SMALL PARTS ───────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-track-piece {
+  background: transparent !important;
+  border: 0 !important;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gh-scroll) !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+  border-radius: 8px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gh-accent) !important;
+  background-clip: padding-box !important;
+}
+::selection {
+  background: var(--gh-accent-glow);
+}
+
+/* ───────────────────────── 10. PLUGIN HOOKS ─────────────────────────
+   The Glasshouse plugin adds these classes to <body>. Harmless without it. */
+
+/* Focus mode: only the chat stays */
+body.gh-focus [class*="content_"] > [class*="sidebar_"],
+body.gh-focus [class*="page_"] [class*="membersWrap_"] {
+  display: none !important;
+}
+body.gh-focus #app-mount [class*="base_"] > [class*="content_"] {
+  display: flex !important;
+  padding-left: max(var(--gh-gap), calc((100vw - 1100px) / 2));
+  padding-right: max(var(--gh-gap), calc((100vw - 1100px) / 2));
+}
+
+/* Hide the members pane only */
+body.gh-no-members [class*="page_"] [class*="membersWrap_"] {
+  display: none !important;
+}
+
+/* Dim the server rail until hovered */
+body.gh-slim-rail nav[class*="guilds_"] {
+  opacity: .5;
+  transition: opacity .18s ease;
+}
+body.gh-slim-rail nav[class*="guilds_"]:hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* ───────────────────────── 11. BACKDROP PRESETS ─────────────────────────
+   Picked in the plugin's quick settings (adds gh-bg-* to <body>). */
+.theme-light body.gh-bg-aurora {
+  --gh-backdrop:
+    radial-gradient(1100px 760px at 10% 6%, hsl(168 90% 84%), transparent 62%),
+    radial-gradient(1000px 720px at 92% 94%, hsl(268 100% 89%), transparent 60%),
+    radial-gradient(760px 520px at 80% 6%, hsl(205 100% 88%), transparent 62%),
+    hsl(190 60% 95%);
+  --gh-base: hsl(190 60% 95%);
+}
+.theme-light body.gh-bg-sunset {
+  --gh-backdrop:
+    radial-gradient(1100px 760px at 8% 8%, hsl(24 100% 86%), transparent 62%),
+    radial-gradient(1000px 720px at 94% 92%, hsl(340 100% 88%), transparent 60%),
+    radial-gradient(760px 520px at 76% 4%, hsl(48 100% 86%), transparent 62%),
+    hsl(28 90% 95%);
+  --gh-base: hsl(28 90% 95%);
+}
+.theme-light body.gh-bg-ocean {
+  --gh-backdrop:
+    radial-gradient(1100px 760px at 8% 6%, hsl(206 100% 86%), transparent 62%),
+    radial-gradient(1000px 720px at 94% 94%, hsl(232 100% 90%), transparent 60%),
+    radial-gradient(760px 520px at 78% 8%, hsl(184 90% 86%), transparent 62%),
+    hsl(212 70% 95%);
+  --gh-base: hsl(212 70% 95%);
+}
+.theme-light body.gh-bg-mono {
+  --gh-backdrop:
+    radial-gradient(1100px 760px at 10% 6%, hsl(220 16% 100%), transparent 62%),
+    radial-gradient(1000px 720px at 92% 94%, hsl(220 14% 88%), transparent 60%),
+    hsl(220 14% 93%);
+  --gh-base: hsl(220 14% 93%);
+}
+.theme-dark body.gh-bg-aurora, .theme-darker body.gh-bg-aurora, .theme-midnight body.gh-bg-aurora {
+  --gh-backdrop:
+    radial-gradient(1200px 800px at 10% 6%, hsl(170 80% 24%), transparent 62%),
+    radial-gradient(1000px 720px at 92% 94%, hsl(265 70% 32%), transparent 60%),
+    radial-gradient(700px 500px at 78% 8%, hsl(205 80% 30% / .7), transparent 62%),
+    hsl(200 40% 8%);
+  --gh-base: hsl(200 40% 8%);
+}
+.theme-dark body.gh-bg-sunset, .theme-darker body.gh-bg-sunset, .theme-midnight body.gh-bg-sunset {
+  --gh-backdrop:
+    radial-gradient(1200px 800px at 8% 8%, hsl(18 85% 34%), transparent 62%),
+    radial-gradient(1000px 720px at 94% 92%, hsl(338 75% 32%), transparent 60%),
+    radial-gradient(700px 500px at 76% 4%, hsl(42 85% 32% / .6), transparent 62%),
+    hsl(350 40% 8%);
+  --gh-base: hsl(350 40% 8%);
+}
+.theme-dark body.gh-bg-ocean, .theme-darker body.gh-bg-ocean, .theme-midnight body.gh-bg-ocean {
+  --gh-backdrop:
+    radial-gradient(1200px 800px at 8% 6%, hsl(210 85% 30%), transparent 62%),
+    radial-gradient(1000px 720px at 94% 94%, hsl(236 70% 32%), transparent 60%),
+    radial-gradient(700px 500px at 78% 8%, hsl(186 80% 26% / .7), transparent 62%),
+    hsl(222 45% 8%);
+  --gh-base: hsl(222 45% 8%);
+}
+.theme-dark body.gh-bg-mono, .theme-darker body.gh-bg-mono, .theme-midnight body.gh-bg-mono {
+  --gh-backdrop:
+    radial-gradient(1200px 800px at 10% 6%, hsl(220 10% 20%), transparent 62%),
+    radial-gradient(1000px 720px at 92% 94%, hsl(220 10% 14%), transparent 60%),
+    hsl(220 10% 8%);
+  --gh-base: hsl(220 10% 8%);
+}
+
+/* Frost for an image backdrop: one blurred copy of the image behind everything.
+   Painted once, unlike a live blur behind every panel. */
+#app-mount {
+  isolation: isolate;
+}
+body.gh-frost #app-mount::before {
+  content: "";
+  position: fixed;
+  inset: -60px;
+  z-index: -1;
+  background: var(--gh-backdrop);
+  filter: blur(var(--gh-blur));
+  pointer-events: none;
+}
+
+/* ───────────────────────── 12. CHAT HEADER ───────────────────────── */
+.theme-light {
+  --gh-bubble: hsl(0 0% 100% / .82);
+  --gh-bubble-self: hsl(var(--gh-accent-h) var(--gh-accent-s) 91%);
+  --gh-bubble-shadow: 0 1px 2px hsl(var(--gh-accent-h) 40% 30% / .08);
+}
+.theme-dark,
+.theme-darker,
+.theme-midnight {
+  --gh-bubble: hsl(0 0% 100% / .075);
+  --gh-bubble-self: hsl(var(--gh-accent-h) var(--gh-accent-s) var(--gh-accent-l) / .24);
+  --gh-bubble-shadow: none;
+}
+
+/* one taller bar: bigger title, roomier tools, pill search */
+[class*="page_"] section[class*="container_"] > [class*="upperContainer_"] {
+  min-height: 58px;
+  padding: 0 12px 0 18px;
+  box-sizing: border-box;
+}
+[class*="page_"] [class*="upperContainer_"] [class*="titleWrapper_"] h1 {
+  font-family: var(--gh-font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+[class*="page_"] [class*="upperContainer_"] [class*="iconWrapper_"][class*="clickable_"] {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: 0 1px;
+  border-radius: 10px;
+  transition: background-color .16s ease, color .16s ease;
+}
+[class*="page_"] [class*="upperContainer_"] [class*="iconWrapper_"][class*="clickable_"]:hover {
+  background: var(--gh-hover);
+}
+[class*="page_"] [class*="upperContainer_"] [class*="iconWrapper_"][class*="selected_"] {
+  background: var(--gh-accent-soft);
+  color: var(--gh-accent) !important;
+}
+[class*="page_"] [class*="toolbar_"] [class*="search_"] [class*="searchBar_"] {
+  height: 34px;
+  border: 1px solid var(--gh-line) !important;
+  border-radius: 17px !important;
+  background: var(--gh-inset) !important;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+[class*="page_"] [class*="toolbar_"] [class*="search_"] [class*="searchBar_"]:focus-within {
+  border-color: var(--gh-accent) !important;
+  box-shadow: 0 0 0 3px var(--gh-accent-soft);
+}
+
+/* ───────────────────────── 13. MESSAGE BUBBLES ─────────────────────────
+   On when the plugin adds gh-bubbles to <body>. Your own messages use the accent tint;
+   the ThemeAttributes plugin of Vencord is what marks them. */
+body.gh-bubbles li[class*="messageListItem_"] [class*="contents_"] > [class*="messageContent_"] {
+  display: block;
+  width: fit-content;
+  max-width: min(100%, 760px);
+  /* Discord pulls message text left under the avatar with a negative margin; undo that */
+  margin: 4px 0 0 0 !important;
+  padding: 8px 13px !important;
+  text-indent: 0 !important;
+  border-radius: 6px 18px 18px 6px;
+  background: var(--gh-bubble);
+  box-shadow: var(--gh-bubble-shadow);
+}
+body.gh-bubbles li[class*="messageListItem_"] [class*="groupStart_"] [class*="contents_"] > [class*="messageContent_"] {
+  border-top-left-radius: 18px;
+}
+body.gh-bubbles li[class*="messageListItem_"][data-is-self="true"] [class*="contents_"] > [class*="messageContent_"] {
+  background: var(--gh-bubble-self);
+}
+body.gh-bubbles li[class*="messageListItem_"] [class*="contents_"] > [class*="messageContent_"]:empty {
+  display: none;
+}
+/* the bubble is the highlight, so the full-width hover band goes */
+body.gh-bubbles li[class*="messageListItem_"] > [class*="message_"]:not([class*="mentioned_"]):hover {
+  background: transparent !important;
+}
+body.gh-bubbles li[class*="messageListItem_"] > [class*="message_"]:hover [class*="contents_"] > [class*="messageContent_"] {
+  filter: brightness(1.04);
+}
+body.gh-bubbles li[class*="messageListItem_"] h3[class*="header_"] {
+  margin-bottom: 1px;
+}
+body.gh-bubbles li[class*="messageListItem_"] [id^="message-accessories-"]:not(:empty) {
+  margin-top: 4px;
+}
+
+/* ───────────────────────── 14. FRIENDS ───────────────────────── */
+/* tabs become pills */
+[class*="page_"] [class*="tabBar_"][role="tablist"] [role="tab"] {
+  padding: 4px 12px;
+  border-radius: 16px;
+  transition: background-color .16s ease, color .16s ease;
+}
+[class*="page_"] [class*="tabBar_"][role="tablist"] [role="tab"]:hover {
+  background: var(--gh-hover) !important;
+}
+[class*="page_"] [class*="tabBar_"][role="tablist"] [role="tab"][class*="selected_"] {
+  background: var(--gh-accent-soft) !important;
+  color: var(--gh-accent) !important;
+}
+[class*="page_"] [class*="tabBar_"][role="tablist"] [role="tab"][class*="addFriend_"] {
+  background: var(--gh-accent) !important;
+  color: #fff !important;
+}
+
+/* search */
+[class*="peopleColumn_"] [class*="searchBar_"] {
+  padding: 14px 18px 6px;
+}
+[class*="peopleColumn_"] [class*="searchBar_"] [class*="wrapper_"],
+[class*="modalContentInner_"] [class*="searchBarContainer_"] [class*="wrapper_"] {
+  border: 1px solid var(--gh-line) !important;
+  border-radius: 20px !important;
+  background: var(--gh-inset) !important;
+  box-shadow: none !important;
+}
+[class*="peopleColumn_"] [class*="searchBar_"] [class*="wrapper_"]:focus-within,
+[class*="modalContentInner_"] [class*="searchBarContainer_"] [class*="wrapper_"]:focus-within {
+  border-color: var(--gh-accent) !important;
+  box-shadow: 0 0 0 3px var(--gh-accent-soft) !important;
+}
+
+/* rows: rounded, no divider lines, soft hover */
+[class*="peopleList_"] [class*="sectionTitle_"] h2 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+[class*="peopleList_"] [class*="divider_"] {
+  visibility: hidden;
+}
+[class*="peopleList_"] [class*="peopleListItem_"] {
+  border: 0 !important;
+  border-radius: calc(var(--gh-radius-small) + 4px) !important;
+  transition: background-color .16s ease;
+}
+[class*="peopleList_"] [class*="peopleListItem_"]:hover,
+[class*="peopleList_"] [class*="peopleListItem_"][class*="active_"] {
+  background: var(--gh-hover) !important;
+}
+[class*="peopleList_"] [class*="actionButton_"] {
+  border-radius: 12px !important;
+  background: var(--gh-inset) !important;
+  transition: background-color .16s ease, color .16s ease;
+}
+[class*="peopleList_"] [class*="actionButton_"]:hover {
+  background: var(--gh-accent-soft) !important;
+  color: var(--gh-accent) !important;
+}
+
+/* Active Now: cards on the panel, not a second slab */
+[class*="nowPlayingColumn_"],
+[class*="nowPlayingColumn_"] > aside,
+[class*="nowPlayingColumn_"] [class*="scroller_"] {
+  background: transparent !important;
+}
+[class*="nowPlayingColumn_"] {
+  border-left: 1px solid var(--gh-line);
+}
+[class*="nowPlayingColumn_"] h2[class*="header_"] {
+  font-family: var(--gh-font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+[class*="nowPlayingColumn_"] [class*="itemCard_"] {
+  border: 1px solid var(--gh-edge) !important;
+  border-radius: calc(var(--gh-radius-small) + 6px) !important;
+  background: var(--gh-inset) !important;
+  box-shadow: none !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+[class*="nowPlayingColumn_"] [class*="itemCard_"]:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--gh-shadow) !important;
+}
+[class*="nowPlayingColumn_"] [class*="itemCard_"] [class*="inset_"] {
+  background: var(--gh-hover) !important;
+  border-radius: var(--gh-radius-small) !important;
+}
+
+/* ───────────────────────── 15. SETTINGS (user and server) ───────────────────────── */
+[class*="outerContainer_"] > [class*="modal_"] {
+  border: 1px solid var(--gh-edge);
+  border-radius: calc(var(--gh-radius) + 4px) !important;
+  background: linear-gradient(var(--gh-inset), var(--gh-inset)), var(--gh-base) !important;
+  box-shadow: 0 30px 80px hsl(var(--gh-accent-h) 40% 12% / .35) !important;
+  overflow: hidden;
+}
+[class*="modalContentInner_"],
+[class*="modalContentInner_"] > [class*="container_"],
+[class*="modalContentInner_"] [class*="content_"],
+[class*="modalContentInner_"] [class*="contentBody_"],
+[class*="modalContentInner_"] [class*="contentHeader_"] {
+  background: transparent !important;
+}
+
+/* sidebar */
+[class*="modalContentInner_"] aside[class*="sidebar_"] {
+  border-right: 1px solid var(--gh-line);
+  background: var(--gh-hover) !important;
+}
+[class*="modalContentInner_"] [class*="sectionLabel_"] h3 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+[class*="modalContentInner_"] nav [class*="item_"][role="link"] {
+  border-radius: 10px !important;
+  transition: background-color .16s ease, color .16s ease;
+}
+[class*="modalContentInner_"] nav [class*="item_"][role="link"]:hover {
+  background: var(--gh-hover) !important;
+}
+[class*="modalContentInner_"] nav [class*="item_"][class*="active_"] {
+  background: var(--gh-accent-soft) !important;
+  color: var(--gh-accent) !important;
+  box-shadow: inset 3px 0 0 var(--gh-accent);
+}
+[class*="modalContentInner_"] nav [class*="item_"][class*="active_"] * {
+  color: inherit !important;
+}
+/* sub-pages under a section keep Discord's plain look, just tinted */
+[class*="modalContentInner_"] nav [class*="subnav_"] [class*="item_"] {
+  background: none !important;
+  box-shadow: none !important;
+}
+[class*="modalContentInner_"] nav [class*="subnav_"] [class*="item_"]:hover {
+  background: var(--gh-hover) !important;
+}
+
+/* header */
+[class*="modalContentInner_"] [class*="contentHeader_"] {
+  min-height: 58px;
+  border-bottom: 1px solid var(--gh-line);
+}
+[class*="modalContentInner_"] [class*="breadcrumbText_"] {
+  font-family: var(--gh-font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* each settings group becomes a card */
+[class*="modalContentInner_"] [class*="categories_"] > [class*="container_"] {
+  padding: 22px 24px;
+  border: 1px solid var(--gh-edge);
+  border-radius: calc(var(--gh-radius-small) + 8px);
+  background: var(--gh-inset);
+  box-shadow: var(--gh-bubble-shadow);
+}
+[class*="modalContentInner_"] [class*="categories_"] > [class*="divider_"] {
+  height: 0;
+  margin: 8px 0;
+  border: 0;
+  background: none;
+  visibility: hidden;
+}
+[class*="modalContentInner_"] [class*="panel_"] button[class*="button_"]:not([class*="icon-only"]) {
+  border-radius: 10px;
+}
+
+/* server settings still use the older full-screen layout: same treatment */
+[class*="standardSidebarView_"] {
+  background: linear-gradient(var(--gh-inset), var(--gh-inset)), var(--gh-base) !important;
+  box-shadow: var(--gh-shadow);
+}
+[class*="standardSidebarView_"] [class*="sidebarRegion_"] {
+  border-right: 1px solid var(--gh-line);
+  background: var(--gh-hover) !important;
+}
+[class*="standardSidebarView_"] [class*="side_"] [class*="header_"] {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+[class*="standardSidebarView_"] [class*="side_"] [role="tab"] {
+  border-radius: 10px !important;
+  transition: background-color .16s ease, color .16s ease;
+}
+[class*="standardSidebarView_"] [class*="side_"] [role="tab"]:hover {
+  background: var(--gh-hover) !important;
+}
+[class*="standardSidebarView_"] [class*="side_"] [role="tab"][class*="selected_"] {
+  background: var(--gh-accent-soft) !important;
+  color: var(--gh-accent) !important;
+  box-shadow: inset 3px 0 0 var(--gh-accent);
+}
+[class*="standardSidebarView_"] [class*="contentColumn_"] h1,
+[class*="standardSidebarView_"] [class*="contentColumn_"] h2:first-child {
+  font-family: var(--gh-font-display);
+  font-weight: 700;
+}
+[class*="standardSidebarView_"] [class*="toolsContainer_"] [class*="closeButton_"] {
+  border-color: var(--gh-edge-strong) !important;
+  border-radius: 12px !important;
+  transition: background-color .16s ease;
+}
+[class*="standardSidebarView_"] [class*="toolsContainer_"] [class*="closeButton_"]:hover {
+  background: var(--gh-hover) !important;
+}
+
+/* settings sub-pages (Account Info, Password & Security...): no pill behind them at all,
+   whichever inner element Discord paints it on. The accent text marks the current one. */
+[class*="modalContentInner_"] nav [class*="subnavContainer_"],
+[class*="modalContentInner_"] nav [class*="subnavContainer_"] * {
+  background: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+[class*="modalContentInner_"] nav [class*="subnavContainer_"] [role="link"]:hover,
+[class*="modalContentInner_"] nav [class*="subnavContainer_"] [role="listitem"]:hover {
+  background-color: var(--gh-hover) !important;
+  border-radius: 8px;
+}
+
+/* ───────────────────────── 16. POPUPS INSIDE THE CHAT ─────────────────────────
+   The mention / emoji / command suggestions open over the messages, inside the glass
+   panel, so they need a solid surface of their own or the chat shows through. */
+[class*="page_"] [class*="autocomplete_"] {
+  background: linear-gradient(var(--gh-inset), var(--gh-inset)), var(--gh-base) !important;
+  border: 1px solid var(--gh-edge-strong) !important;
+  border-radius: calc(var(--gh-radius-small) + 4px) !important;
+  box-shadow: 0 18px 44px hsl(var(--gh-accent-h) 40% 10% / .35) !important;
+  overflow: hidden;
+}
+[class*="page_"] [class*="autocomplete_"] [class*="autocompleteInner_"],
+[class*="page_"] [class*="autocomplete_"] [class*="scroller_"] {
+  background: transparent !important;
+}
+[class*="page_"] [class*="autocomplete_"] [class*="clickable_"][aria-selected="true"] > [class*="base_"],
+[class*="page_"] [class*="autocomplete_"] [class*="clickable_"]:hover > [class*="base_"] {
+  background: var(--gh-accent-soft) !important;
+  border-radius: var(--gh-radius-small);
+}
