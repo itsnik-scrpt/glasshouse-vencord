@@ -1,4 +1,10 @@
-<p align="center"><img src="assets/logo-banner.png" alt="Glasshouse" width="100%"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo-on-light.png">
+    <img src="assets/logo.png" alt="Glasshouse" width="620">
+  </picture>
+</p>
 
 # Glasshouse
 
