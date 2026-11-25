@@ -22,8 +22,6 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 
 *Preview images, drawn with sample data.*
 
-> **Unofficial.** This is not part of Vencord and would not be accepted there: it manipulates the page directly and redesigns Discord's UI. Client mods are against Discord's Terms of Service. Use it at your own risk.
-
 ## What it does
 
 **Hub** (replaces the server rail and channel list)
