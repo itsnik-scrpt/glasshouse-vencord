@@ -109,7 +109,35 @@ function detach() {
     host = null;
 }
 
+/*
+ * Theme helper: Ctrl+Alt+Shift+R copies a list of the large elements in the main page
+ * that paint their own background (class names and colour). Paste it into a bug report
+ * when part of a screen does not match the theme.
+ */
+function surfaceReport() {
+    const page = document.querySelector('[class*="content_"] > [class*="page_"]');
+    if (!page) return;
+    const lines: string[] = [];
+    for (const el of Array.from(page.querySelectorAll<HTMLElement>("*"))) {
+        const box = el.getBoundingClientRect();
+        if (box.width < 200 || box.height < 60) continue;
+        const cs = getComputedStyle(el);
+        const parts = cs.backgroundColor.replace(/[^0-9.,]/g, "").split(",");
+        const alpha = parts.length === 4 ? Number(parts[3]) : 1;
+        const image = cs.backgroundImage !== "none";
+        if (alpha < 0.3 && !image) continue;
+        const cls = typeof el.className === "string" ? el.className.split(" ").filter(Boolean).slice(0, 4).join(".") : "";
+        lines.push(`${el.tagName.toLowerCase()}.${cls} | ${Math.round(box.width)}x${Math.round(box.height)} | ${cs.backgroundColor}${image ? " | image" : ""}`);
+        if (lines.length >= 60) break;
+    }
+    navigator.clipboard.writeText(lines.join(String.fromCharCode(10)) || "nothing paints its own background here");
+}
+
 function onKeyDown(e: KeyboardEvent) {
+    if (e.ctrlKey && e.altKey && e.shiftKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        return surfaceReport();
+    }
     if (!e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey) return;
 
     const key = e.key.toLowerCase();

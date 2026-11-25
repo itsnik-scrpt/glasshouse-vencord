@@ -8,6 +8,7 @@ import * as DataStore from "@api/DataStore";
 import { copyWithToast, openUserProfile } from "@utils/discord";
 import { findByPropsLazy, findStoreLazy } from "@webpack";
 import {
+    ActiveJoinedThreadsStore,
     Alerts,
     ChannelStore,
     FluxDispatcher,
@@ -110,6 +111,7 @@ export const I = {
     sliders: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4",
     home: "M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8z",
     x: "M6 6l12 12M18 6L6 18",
+    thread: "M5 4v9a4 4 0 0 0 4 4h10M15 13l4 4-4 4",
     micOff: "M9 9v2a3 3 0 0 0 5 2.200M15 10V6a3 3 0 0 0-5.700-1.300M6 11a6 6 0 0 0 9.300 5M18 11a6 6 0 0 1-.500 2.400M12 17v4M4 4l16 16",
     deaf: "M5 14v-2a7 7 0 0 1 11.500-5.400M19 12v2M5 14a2 2 0 0 1 2-2h1v6H7a2 2 0 0 1-2-2v-2zM19 14v2a2 2 0 0 1-2 2h-1v-4M4 4l16 16",
     video: "M4 7h10a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM15 10.500l6-3v9l-6-3",
@@ -143,7 +145,7 @@ function channelIcon(type: number) {
 }
 
 function Channels({ guildId, query, top }: { guildId: string; query: string; top?: any; }) {
-    useStores([GuildChannelStore, ChannelStore, ReadStateStore, SelectedChannelStore, VoiceStateStore, UserGuildSettingsStore, UserStore], 400);
+    useStores([GuildChannelStore, ChannelStore, ReadStateStore, SelectedChannelStore, VoiceStateStore, UserGuildSettingsStore, UserStore, ActiveJoinedThreadsStore], 400);
     const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
@@ -180,7 +182,14 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
     };
 
     const row = (c: any) => {
-        if (!matches(c.name, query)) return null;
+        const joined: Record<string, any> = safe(() => ActiveJoinedThreadsStore.getActiveJoinedRelevantThreadsForParent(guildId, c.id), {});
+        const threads: any[] = Object.values(joined).map((t: any) => t.channel).filter(Boolean);
+        const openThread: any = selectedChannel ? ChannelStore.getChannel(selectedChannel) : null;
+        if (openThread?.parent_id === c.id && openThread.isThread?.() && !threads.some(t => t.id === openThread.id)) threads.push(openThread);
+        threads.sort((a, b) => (b.lastMessageId ?? b.id).localeCompare(a.lastMessageId ?? a.id));
+        const shownThreads = query ? threads.filter(t => matches(t.name, query)) : threads;
+        if (!matches(c.name, query) && !shownThreads.length) return null;
+        const threadOn = threads.some(t => t.id === selectedChannel);
         const unread = !isVoice(c) && safe(() => ReadStateStore.hasUnread(c.id), false);
         const mentions = safe(() => ReadStateStore.getMentionCount(c.id), 0);
         const muted = safe(() => UserGuildSettingsStore.isChannelMuted(guildId, c.id), false);
@@ -191,7 +200,7 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
         // The wrapper carries gh-on / gh-unread too, so a collapsed category keeps showing
         // the open channel, unread ones, and voice channels with people in them.
         return (
-            <div key={c.id} className={"gh-chwrap" + (isOn || inVoice ? " gh-on" : "") + (unread && !muted ? " gh-unread" : "")}>
+            <div key={c.id} className={"gh-chwrap" + (isOn || inVoice || threadOn ? " gh-on" : "") + (unread && !muted ? " gh-unread" : "")}>
                 <button
                     className={"gh-channel"
                         + (isOn ? " gh-on" : "")
@@ -206,6 +215,23 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
                     {inVoice > 0 && <span className="gh-count">{inVoice}</span>}
                     <Badge n={mentions} />
                 </button>
+                {shownThreads.length > 0 && (
+                    <div className="gh-threads">
+                        {shownThreads.map(t => {
+                            const tUnread = safe(() => ReadStateStore.hasUnread(t.id), false);
+                            return (
+                                <button key={t.id}
+                                    className={"gh-channel gh-thread" + (t.id === selectedChannel ? " gh-on" : "") + (tUnread ? " gh-unread" : "")}
+                                    onClick={() => NavigationRouter.transitionToGuild(guildId, t.id)}
+                                    onContextMenu={e => channelContext(e, t.id)}>
+                                    <Icon d={I.thread} size={14} />
+                                    <span className="gh-channel-name">{t.name}</span>
+                                    <Badge n={safe(() => ReadStateStore.getMentionCount(t.id), 0)} />
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
                 {inVoice > 0 && (
                     <div className="gh-voice-users">
                         {voiceIds.map(uid => {

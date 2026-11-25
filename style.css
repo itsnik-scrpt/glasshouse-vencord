@@ -3369,3 +3369,27 @@ body.gh-layout-top .gh-channels > .gh-pings {
     margin: 0 6px 0 0;
     padding: 4px 8px;
 }
+
+/* ═════ threads and forum posts, nested under their channel ═════ */
+
+.gh-threads {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin: 1px 0 4px 16px;
+    padding-left: 6px;
+    border-left: 2px solid var(--_line);
+}
+
+#gh-hub .gh-thread {
+    height: calc(var(--_row) - 4px);
+    font-size: 13px;
+}
+
+#gh-hub .gh-thread.gh-unread::before {
+    left: -10px;
+}
+
+body.gh-layout-top .gh-threads {
+    display: none;
+}

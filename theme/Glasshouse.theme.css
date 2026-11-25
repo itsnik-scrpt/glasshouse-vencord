@@ -860,3 +860,75 @@ body.gh-bubbles li[class*="messageListItem_"] [id^="message-accessories-"]:not(:
   background: var(--gh-accent-soft) !important;
   border-radius: var(--gh-radius-small);
 }
+
+/* ───────────────────────── 17. FORUMS AND THE THREAD PANEL ─────────────────────────
+   These views paint with other surface variables than normal chat, and some of them sit
+   inside a nested .theme-dark / .theme-light wrapper that declares every variable again.
+   Inside the page panel, clear all of them (the nested wrappers included) so the glass
+   shows through, and give cards the same inset surface as everything else. */
+#app-mount [class*="content_"] > [class*="page_"],
+#app-mount [class*="content_"] > [class*="page_"] .theme-dark,
+#app-mount [class*="content_"] > [class*="page_"] .theme-light,
+#app-mount [class*="content_"] > [class*="page_"] .theme-darker,
+#app-mount [class*="content_"] > [class*="page_"] .theme-midnight {
+  --background-base-lowest: transparent;
+  --background-base-lower: transparent;
+  --background-base-low: transparent;
+  --background-primary: transparent;
+  --background-secondary: transparent;
+  --background-secondary-alt: transparent;
+  --background-tertiary: transparent;
+  --bg-base-primary: transparent;
+  --bg-base-secondary: transparent;
+  --bg-base-tertiary: transparent;
+  --bg-overlay-chat: transparent;
+  --bg-overlay-app-frame: transparent;
+  --bg-overlay-1: transparent;
+  --bg-overlay-2: transparent;
+  --bg-overlay-3: transparent;
+  --bg-overlay-4: transparent;
+  --bg-overlay-5: transparent;
+  --bg-overlay-6: transparent;
+  --background-gradient-chat: transparent;
+  --background-gradient-lowest: transparent;
+  --background-gradient-lower: transparent;
+  --background-gradient-low: transparent;
+  --home-background: transparent;
+  --chat-background: transparent;
+  --background-surface-high: var(--gh-inset);
+  --background-surface-higher: var(--gh-inset);
+  --background-surface-highest: var(--gh-inset);
+  --bg-surface-raised: var(--gh-inset);
+  --card-background-default: var(--gh-inset);
+  --chat-background-default: var(--gh-inset);
+}
+
+/* the thread / forum post panel that opens beside the chat */
+[class*="page_"] [class*="threadSidebar_"],
+[class*="page_"] [class*="chatLayerWrapper_"],
+[class*="page_"] [class*="chatTarget_"],
+[class*="page_"] [class*="resizeHandle_"] {
+  background: transparent !important;
+}
+[class*="page_"] [class*="threadSidebar_"] {
+  border-left: 1px solid var(--gh-line);
+}
+
+/* forum: search bar, tag chips and post cards */
+[class*="page_"] [class*="mainCard_"],
+[class*="page_"] [class*="headerRow_"] > [class*="card_"],
+[class*="page_"] li[class*="card_"] > [class*="container_"] {
+  background: var(--gh-inset) !important;
+  border: 1px solid var(--gh-edge) !important;
+  border-radius: calc(var(--gh-radius-small) + 6px) !important;
+  box-shadow: none !important;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+[class*="page_"] li[class*="card_"] > [class*="container_"]:hover {
+  border-color: var(--gh-accent) !important;
+  background: var(--gh-hover) !important;
+}
+[class*="page_"] [class*="tagsContainer_"] [class*="pill_"],
+[class*="page_"] [class*="sortDropdown_"] {
+  border-radius: 16px !important;
+}

@@ -11,7 +11,7 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 **Hub** (replaces the server rail and channel list)
 - Search for channels and conversations
 - Page buttons: Home, Quests, Shop, Nitro, Discover
-- Custom channel list with collapsible categories, unread and mention counts, and people in voice channels
+- Custom channel list with collapsible categories, unread and mention counts, threads and forum posts, and people in voice channels
 - Custom DM list
 - Ping counts on Home and the server button, plus a strip of who pinged you
 - Custom server menu, and a channel editor (create, rename, delete, reorder, drag between categories)
@@ -66,7 +66,7 @@ To update: `git pull` inside `src/userplugins/glasshouse`, copy the theme file a
 
 - **It changes real servers.** The member finder's timeout, kick and ban, and the channel editor's create, rename, delete and move, act on the server immediately. Deletes, kicks and bans ask first; nothing else does.
 - **It will break when Discord changes.** The hub reads Discord's page structure and class names, and drives some of Discord's own hidden controls. A Discord update can break parts of it until the plugin is updated. Turn off "Use this hub" in the settings drawer to get Discord's sidebar back.
-- **Not covered by the hub's lists:** threads, forum posts and drag-to-reorder servers. Use Discord's sidebar for those.
+- **Not covered by the hub's lists:** threads and forum posts you have not joined (open the channel to browse them), and drag-to-reorder servers.
 
 ## Licence
 
