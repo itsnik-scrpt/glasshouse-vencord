@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo-banner.png" alt="Glasshouse" width="100%"></p>
+
 # Glasshouse
 
 A full layout replacement for Discord, built as a [Vencord](https://vencord.dev) userplugin with a matching theme.
