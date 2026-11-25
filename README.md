@@ -4,6 +4,14 @@ A full layout replacement for Discord, built as a [Vencord](https://vencord.dev)
 
 It swaps Discord's server rail and channel list for a single hub, adds a fullscreen server picker with your own groups, and restyles chat, friends and settings to match.
 
+![Glasshouse in the dark theme](screenshots/dark.png)
+
+| Server picker | Light theme |
+|---|---|
+| ![Server picker with groups](screenshots/servers.png) | ![Glasshouse in the light theme](screenshots/light.png) |
+
+*Preview images, drawn with sample data.*
+
 > **Unofficial.** This is not part of Vencord and would not be accepted there: it manipulates the page directly and redesigns Discord's UI. Client mods are against Discord's Terms of Service. Use it at your own risk.
 
 ## What it does
