@@ -28,6 +28,28 @@ export async function askAssistant(_: IpcMainInvokeEvent, apiKey: string, payloa
     }
 }
 
+/**
+ * Posts a message through a webhook. Discord refuses webhook posts that come from its
+ * own page ("Invalid request origin"), so this one request is sent from here instead.
+ * The address is built from a checked id and token and always points at discord.com.
+ */
+export async function postWebhook(_: IpcMainInvokeEvent, id: string, token: string, threadId: string | null, payload: string) {
+    try {
+        if (!/^\d{5,25}$/.test(id) || !/^[\w-]{20,200}$/.test(token) || (threadId !== null && !/^\d{5,25}$/.test(threadId))) {
+            return { status: 0, data: "The webhook details are not valid." };
+        }
+        const res = await fetch(`https://discord.com/api/v10/webhooks/${id}/${token}?wait=true${threadId ? `&thread_id=${threadId}` : ""}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            signal: AbortSignal.timeout(20_000)
+        });
+        return { status: res.status, data: await res.text() };
+    } catch (e) {
+        return { status: -1, data: String(e) };
+    }
+}
+
 const IMAGE_HOSTS = [".discordapp.com", ".discordapp.net", ".tenor.com", ".giphy.com", ".klipy.com"];
 
 /**

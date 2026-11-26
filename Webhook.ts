@@ -7,6 +7,7 @@
  */
 
 import * as DataStore from "@api/DataStore";
+import { PluginNative } from "@utils/types";
 import { ChannelStore, GuildStore, PermissionsBits, PermissionStore, RestAPI, UserStore } from "@webpack/common";
 
 export interface Post {
@@ -115,17 +116,25 @@ export async function sendPost(post: Post, name: string, hue: number, pictureUrl
         void DataStore.set(KEY, store);
         return hook;
     };
-    const run = async (hook: { id: string; token: string; }) => RestAPI.post({
-        url: `/webhooks/${hook.id}/${hook.token}`,
-        query: { wait: true, ...(parent !== channel.id ? { thread_id: channel.id } : {}) },
-        body: {
+    // The post itself goes out from Discord's main process: sent from the page, Discord rejects it.
+    const native = VencordNative.pluginHelpers.Glasshouse as PluginNative<typeof import("./native")> | undefined;
+    const run = async (hook: { id: string; token: string; }) => {
+        if (!native?.postWebhook) throw new Error("Quit Discord from the tray and open it again to finish this update, then try again.");
+        const { status, data } = await native.postWebhook(hook.id, hook.token, parent !== channel.id ? channel.id : null, JSON.stringify({
             content,
             username: name,
             ...(/^https:\/\//i.test(pictureUrl) ? { avatar_url: pictureUrl } : {}),
             // Nobody is pinged, whatever the text says: no @everyone, no role or user pings.
             allowed_mentions: { parse: [] }
-        }
-    } as any);
+        }));
+        if (status >= 200 && status < 300) return;
+        let body: any = null;
+        try { body = JSON.parse(data); } catch { /* not JSON */ }
+        const problem: any = new Error(status === -1 ? "Could not reach Discord. Check your internet connection." : body?.message ?? `Discord answered ${status}`);
+        problem.status = status;
+        problem.body = body;
+        throw problem;
+    };
 
     try {
         await run(await find());
