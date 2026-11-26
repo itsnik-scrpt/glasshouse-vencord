@@ -3,7 +3,7 @@
  * hidden), with its own layout: an "active now" strip, then friends as a grid of cards.
  */
 
-import { openPrivateChannel, openUserProfile } from "@utils/discord";
+import { openUserProfile } from "@utils/discord";
 import {
     Alerts,
     IconUtils,
@@ -15,6 +15,7 @@ import {
     useState
 } from "@webpack/common";
 
+import { openDM } from "./dm";
 import { I, Icon, matches, safe, useStores } from "./Hub";
 
 type Tab = "online" | "all" | "pending" | "blocked";
@@ -133,7 +134,7 @@ export function Friends() {
     const card = (p: Person, i: number) => (
         <div key={p.id} className={"gh-fr-card" + (STATUS_ORDER[p.status] === 3 && p.type === FRIEND ? " gh-off" : "")} style={{ "--i": i } as any}>
             <button className="gh-fr-main" aria-label="Open conversation"
-                onClick={() => p.type === BLOCKED ? openUserProfile(p.id) : openPrivateChannel(p.id)}>
+                onClick={() => p.type === BLOCKED ? openUserProfile(p.id) : void openDM(p.id)}>
                 {avatar(p, 44)}
                 <span className="gh-member-names">
                     <span>{nameOf(p)}</span>
@@ -204,7 +205,7 @@ export function Friends() {
                     const art = artOf(p.act);
                     const time = elapsed(p.act);
                     return (
-                        <button key={p.id} className="gh-fr-now" style={{ "--i": i } as any} onClick={() => openPrivateChannel(p.id)}>
+                        <button key={p.id} className="gh-fr-now" style={{ "--i": i } as any} onClick={() => void openDM(p.id)}>
                             <span className="gh-fr-now-head">
                                 {avatar(p, 36)}
                                 <span className="gh-member-names">

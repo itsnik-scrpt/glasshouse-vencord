@@ -7,7 +7,7 @@
  */
 
 import * as DataStore from "@api/DataStore";
-import { copyWithToast, openPrivateChannel, openUserProfile } from "@utils/discord";
+import { copyWithToast, openUserProfile } from "@utils/discord";
 import {
     Alerts,
     ChannelMemberStore,
@@ -28,6 +28,7 @@ import {
     useState
 } from "@webpack/common";
 
+import { openDM } from "./dm";
 import { memberContext } from "./context";
 import { I, Icon, matches, safe, useStores } from "./Hub";
 import { settings } from "./settings";
@@ -90,7 +91,7 @@ export function MemberActions({ guildId, user, member, reason }: { guildId: stri
     return (
         <div className="gh-actions">
             <button onClick={() => openUserProfile(user.id)}>Profile</button>
-            {!user.bot && <button onClick={() => openPrivateChannel(user.id)}>Message</button>}
+            {!user.bot && <button onClick={() => void openDM(user.id)}>Message</button>}
             <button onClick={() => copyWithToast(user.id, "User ID copied")}>Copy ID</button>
             {canTimeout && TIMEOUTS.map(([label, secs]) => (
                 <button key={label} onClick={() => timeout(secs, label)}>Timeout {label}</button>
