@@ -39,7 +39,10 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 **Assistant**
 - A private conversation in your DM list, with its own profile, name and picture
 - Reads your servers, channels, DMs and Discord's search to catch you up, find things and draft replies
-- Read-only: it cannot send, edit or delete anything
+- Web search, picture attachments, and your servers' emojis, stickers and GIFs in the chat
+- Point it at things with `##server`, `#channel` or `@person`, or open it as a floating window over the chat you are reading
+- It never changes anything by itself. It can propose server changes (channels, categories, roles, name and description) as a card, and you approve each one
+- It cannot send, edit or delete messages
 - Runs on Claude with your own Anthropic API key
 
 **Server picker**
@@ -92,6 +95,7 @@ To update a source install: `git pull` inside `src/userplugins/glasshouse`, run 
 ## Things to know before using it
 
 - **It changes real servers.** The member finder's timeout, kick and ban, and the channel editor's create, rename, delete and move, act on the server immediately. Deletes, kicks and bans ask first; nothing else does.
+- **The assistant only changes a server when you approve it.** Its proposals are checked against the real server and worded by the plugin, not by the assistant. Deletions and powerful role permissions are approved one at a time.
 - **The assistant sends what it reads to Anthropic.** To answer a question it reads messages, including other people's and your DMs, and sends them to the Anthropic API under your key. The key is stored as plain text in Vencord's settings file.
 - **It will break when Discord changes.** The hub reads Discord's page structure and class names, and drives some of Discord's own hidden controls. A Discord update can break parts of it until the plugin is updated. Turn off "Use this hub" in the settings drawer to get Discord's sidebar back.
 - **Not covered by the hub's lists:** threads and forum posts you have not joined (open the channel to browse them), and drag-to-reorder servers.

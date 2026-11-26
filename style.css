@@ -5188,3 +5188,130 @@ body.gh-motion-off .gh-aip-pop {
     color: var(--_accent);
     font-weight: 600;
 }
+
+/* ───── a proposal from the assistant, waiting for your approval ───── */
+
+.gh-aiw .gh-aip-prop {
+    max-width: 640px;
+    margin: 10px 20px 4px 74px;
+    padding: 12px 14px;
+    border: 1px solid var(--_edge);
+    border-left: 3px solid var(--_accent);
+    border-radius: 12px;
+    background: var(--_inset);
+}
+
+.gh-aif .gh-aip-prop {
+    margin: 8px 12px 4px;
+}
+
+.gh-aiw .gh-aip-prop.gh-closed {
+    border-left-color: var(--_edge);
+    opacity: 0.7;
+}
+
+.gh-aiw .gh-aip-prop-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--_accent);
+}
+
+.gh-aiw .gh-aip-prop-head strong {
+    flex: 1;
+    min-width: 0;
+    color: var(--_text);
+    font: 700 15px var(--font-display);
+}
+
+.gh-aiw .gh-aip-prop-head small {
+    flex: none;
+    color: var(--_muted);
+    font-size: 12.5px;
+}
+
+.gh-aiw .gh-aip-prop-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-top: 1px solid var(--_line);
+    color: var(--_muted);
+}
+
+.gh-aiw .gh-aip-prop-row > .gh-ico {
+    flex: none;
+    margin-top: 2px;
+}
+
+.gh-aiw .gh-aip-prop-row > span {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-wrap: anywhere;
+}
+
+.gh-aiw .gh-aip-prop-row b {
+    color: var(--_text);
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.gh-aiw .gh-aip-prop-row small {
+    font-size: 12.5px;
+    line-height: 1.35;
+}
+
+.gh-aiw .gh-aip-prop-row.gh-done {
+    color: #23a55a;
+}
+
+.gh-aiw .gh-aip-prop-row.gh-failed,
+.gh-aiw .gh-aip-prop-row .gh-err {
+    color: var(--status-danger, #e5484d);
+}
+
+.gh-aiw .gh-aip-prop-row .gh-aip-pill {
+    height: 30px;
+    padding: 0 11px;
+    font-size: 12.5px;
+}
+
+.gh-aiw .gh-aip-tick {
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin-top: 1px;
+    border: 1.5px solid var(--_muted);
+    border-radius: 5px;
+    color: #fff;
+}
+
+.gh-aiw .gh-aip-tick.gh-on {
+    border-color: var(--_accent);
+    background: var(--_accent);
+}
+
+.gh-aiw .gh-aip-prop-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.gh-aiw .gh-aip-prop-foot small,
+.gh-aiw .gh-aip-prop-end {
+    color: var(--_muted);
+    font-size: 12.5px;
+}
+
+.gh-aiw .gh-aip-prop-end {
+    display: block;
+    margin-top: 8px;
+}
