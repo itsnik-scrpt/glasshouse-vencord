@@ -5372,3 +5372,318 @@ body.gh-motion-off .gh-aip-pop {
     flex: 1 1 220px;
     line-height: 1.35;
 }
+
+/* ═════ channel editor: kinds, details and the right-click menu ═════ */
+
+.gh-ce-add {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.gh-ce-addline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gh-ce-kinds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+#gh-hub .gh-ce-kinds button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 9px;
+    border: 1px solid var(--_line);
+    border-radius: 12px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    transition: border-color 140ms ease, color 140ms ease, background-color 140ms ease;
+}
+
+#gh-hub .gh-ce-kinds button:hover {
+    color: var(--_text);
+}
+
+#gh-hub .gh-ce-kinds button.gh-on {
+    border-color: var(--_accent);
+    background: var(--_accent-soft);
+    color: var(--_accent);
+}
+
+.gh-ce-row.gh-on {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+.gh-ce-row.gh-on .gh-tool {
+    opacity: 1;
+}
+
+#gh-hub .gh-ce-row .gh-tool.gh-on {
+    color: var(--_accent);
+}
+
+.gh-ce-lock {
+    display: flex;
+    flex: none;
+    color: var(--_muted);
+    opacity: 0.8;
+}
+
+.gh-ce-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 2px 0 6px 12px;
+    padding: 10px;
+    border-left: 2px solid var(--_accent);
+    border-radius: 0 10px 10px 0;
+    background: var(--_inset);
+    animation: gh-fade 160ms ease both;
+}
+
+.gh-ce-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 26px;
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gh-ce-field > span {
+    flex: 1;
+    min-width: 0;
+}
+
+.gh-ce-field > b {
+    flex: none;
+    width: 62px;
+    color: var(--_text);
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.gh-ce-field.gh-ce-tall {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.gh-ce-details textarea,
+.gh-ce-select {
+    box-sizing: border-box;
+    border: 1px solid var(--_line);
+    border-radius: 7px;
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+    font: 500 12px var(--font-primary);
+    outline: 0;
+    transition: border-color 140ms ease;
+}
+
+.gh-ce-details textarea {
+    width: 100%;
+    min-height: 44px;
+    max-height: 140px;
+    padding: 6px 8px;
+    resize: vertical;
+}
+
+.gh-ce-select {
+    flex: none;
+    height: 26px;
+    max-width: 130px;
+    padding: 0 6px;
+    cursor: pointer;
+}
+
+.gh-ce-details textarea:focus,
+.gh-ce-select:focus {
+    border-color: var(--_accent);
+}
+
+.gh-ce-details .gh-ce-num {
+    flex: none;
+    width: 64px;
+    border-color: var(--_line);
+    font-size: 12px;
+}
+
+.gh-ce-details .gh-ce-num:focus {
+    border-color: var(--_accent);
+}
+
+.gh-ce-details input[type="range"] {
+    flex: 1.4;
+    min-width: 0;
+    accent-color: var(--_accent);
+}
+
+.gh-ce-details .gh-segment {
+    flex: none;
+    padding: 2px;
+}
+
+#gh-hub .gh-ce-details .gh-segment button {
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+#gh-hub .gh-ce-details .gh-segment button.gh-on {
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_text);
+}
+
+#gh-hub .gh-ce-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 26px;
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#gh-hub .gh-ce-check span {
+    flex: 1;
+}
+
+.gh-ce-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+#gh-hub .gh-ce-actions button {
+    height: 26px;
+    padding: 0 12px;
+    border-radius: 13px;
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+#gh-hub .gh-ce-actions button:hover {
+    background: var(--_hover);
+    color: var(--_text);
+}
+
+#gh-hub .gh-ce-actions button.gh-on {
+    background: var(--_accent);
+    color: #fff;
+}
+
+.gh-cmenu {
+    --_line: var(--gh-line, rgb(127 127 127 / 18%));
+    --_hover: var(--gh-hover, rgb(127 127 127 / 12%));
+    --_accent: var(--gh-accent, var(--brand-500));
+    --_text: var(--text-default, var(--text-normal));
+    --_muted: var(--text-muted);
+
+    position: fixed;
+    z-index: 960;
+    display: flex;
+    flex-direction: column;
+    width: 232px;
+    max-height: calc(100vh - 16px);
+    padding: 6px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    border: 1px solid var(--gh-edge, rgb(127 127 127 / 25%));
+    border-radius: 14px;
+    background: var(--gh-raised, var(--background-base-low));
+    box-shadow: 0 14px 40px rgb(0 0 0 / 28%);
+    color: var(--_text);
+    font: 13px var(--font-primary);
+    animation: gh-fade 120ms ease both;
+}
+
+.gh-cmenu header {
+    padding: 4px 10px 6px;
+    overflow: hidden;
+    color: var(--_muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.gh-cmenu hr {
+    width: auto;
+    height: 1px;
+    margin: 4px 8px;
+    border: 0;
+    background: var(--_line);
+}
+
+.gh-cmenu .gh-cmenu-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex: none;
+    min-height: 30px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--_text);
+    font: inherit;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.gh-cmenu .gh-cmenu-row svg {
+    flex: none;
+    color: var(--_muted);
+    transition: color 120ms ease;
+}
+
+.gh-cmenu .gh-cmenu-row span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-cmenu .gh-cmenu-row:hover {
+    background: var(--_hover);
+}
+
+.gh-cmenu .gh-cmenu-row:hover svg {
+    color: var(--_accent);
+}
+
+.gh-cmenu .gh-cmenu-row.gh-danger,
+.gh-cmenu .gh-cmenu-row.gh-danger svg {
+    color: #da373c;
+}
+
+.gh-cmenu .gh-cmenu-row.gh-danger:hover {
+    background: rgb(218 55 60 / 12%);
+}
+
+body.gh-motion-off .gh-cmenu,
+body.gh-motion-off .gh-ce-details {
+    animation: none;
+}
