@@ -150,6 +150,35 @@ export const settings = definePluginSettings({
     showActivity: toggle("Member list: show status text and activity", true),
     membersWidth: slider("Member list width (px)", 264, [220, 260, 300, 340, 380]),
     customFriends: toggle("Replace the Friends page with the Glasshouse one", true),
+    assistantKey: {
+        type: OptionType.STRING,
+        description: "Assistant: your Anthropic API key. Kept in Vencord's settings file on this computer.",
+        default: ""
+    },
+    assistantName: {
+        type: OptionType.STRING,
+        description: "Assistant: its name",
+        default: "Prism"
+    },
+    assistantAvatar: {
+        type: OptionType.STRING,
+        description: "Assistant: picture link (https). Leave empty for the orb.",
+        default: ""
+    },
+    assistantModel: {
+        type: OptionType.SELECT,
+        description: "Assistant: model",
+        options: [
+            { label: "Opus (most capable)", value: "claude-opus-5-5", default: true },
+            { label: "Sonnet", value: "claude-sonnet-5-5" },
+            { label: "Haiku (fastest)", value: "claude-haiku-5-5" }
+        ]
+    },
+    syncTheme: {
+        type: OptionType.BOOLEAN,
+        description: "Keep the Glasshouse theme file up to date with the plugin. Turn off if you edit the theme file yourself.",
+        default: true
+    },
     hideMembers: toggle("Hide the members pane (Ctrl+Alt+M)"),
     focusMode: toggle("Focus mode: chat only (Ctrl+Alt+F)")
 });

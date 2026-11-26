@@ -5,15 +5,16 @@
  *    searchable animated servers, own channel and DM lists, member finder with
  *    moderation actions, quick settings.
  *  - Drives the theme's --gh-* variables live.
- *  - Shortcuts: Ctrl+Alt+F focus, Ctrl+Alt+M members pane, Ctrl+Alt+S search, Ctrl+Alt+D member finder.
+ *  - Shortcuts: Ctrl+Alt+F focus, Ctrl+Alt+M members pane, Ctrl+Alt+S search, Ctrl+Alt+D member finder, Ctrl+Alt+C calculator, Ctrl+Alt+A assistant.
  */
 
 import "./style.css";
 
 import ErrorBoundary from "@components/ErrorBoundary";
-import definePlugin from "@utils/types";
+import definePlugin, { PluginNative } from "@utils/types";
 import { createRoot, SelectedGuildStore } from "@webpack/common";
 
+import { assistantPathCheck, AssistantPage, isAssistantOpen, onAssistantChange } from "./Assistant";
 import { Friends } from "./Friends";
 import { Hub } from "./Hub";
 import { MemberList } from "./Members";
@@ -67,6 +68,31 @@ function attachFriends() {
     main!.setAttribute("data-gh-friends", "");
 }
 
+let assistantHost: HTMLDivElement | null = null;
+let assistantRoot: any = null;
+let assistantUnsub: (() => void) | null = null;
+
+/** The assistant's conversation is drawn over Discord's page while it is open. */
+function attachAssistant() {
+    assistantPathCheck();
+    const page = document.querySelector('[class*="content_"] > [class*="page_"]') as HTMLElement | null;
+    const on = !!page && isAssistantOpen();
+    document.querySelectorAll("[data-gh-assistant]").forEach(el => { if (!on || el !== page) el.removeAttribute("data-gh-assistant"); });
+    if (!on) {
+        assistantHost?.remove();
+        return;
+    }
+    if (!assistantHost) {
+        assistantHost = document.createElement("div");
+        assistantHost.id = "gh-assistant";
+        assistantRoot = createRoot(assistantHost);
+        assistantHost.addEventListener("keydown", stopKeys);
+        assistantRoot.render(<ErrorBoundary noop><AssistantPage /></ErrorBoundary>);
+    }
+    if (assistantHost.parentElement !== page) page!.appendChild(assistantHost);
+    page!.setAttribute("data-gh-assistant", "");
+}
+
 let membersHost: HTMLDivElement | null = null;
 let membersRoot: any = null;
 
@@ -90,6 +116,13 @@ function attachMembers() {
 }
 
 function detach() {
+    assistantUnsub?.();
+    assistantUnsub = null;
+    assistantRoot?.unmount();
+    assistantRoot = null;
+    assistantHost?.remove();
+    assistantHost = null;
+    document.querySelectorAll("[data-gh-assistant]").forEach(el => el.removeAttribute("data-gh-assistant"));
     friendsRoot?.unmount();
     friendsRoot = null;
     friendsHost?.remove();
@@ -158,11 +191,17 @@ export default definePlugin({
 
     start() {
         apply();
+        // The theme ships inside the plugin; this refreshes the copy in the themes folder.
+        if (settings.store.syncTheme) {
+            const native = VencordNative.pluginHelpers.Glasshouse as PluginNative<typeof import("./native")> | undefined;
+            void native?.syncTheme?.();
+        }
         document.addEventListener("keydown", onKeyDown, true);
         attach();
         attachMembers();
         attachFriends();
-        watcher = setInterval(() => { attach(); attachMembers(); attachFriends(); }, 500);
+        assistantUnsub = onAssistantChange(attachAssistant);
+        watcher = setInterval(() => { attach(); attachMembers(); attachFriends(); attachAssistant(); }, 500);
     },
 
     stop() {

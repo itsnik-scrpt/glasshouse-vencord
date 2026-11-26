@@ -38,6 +38,8 @@ import {
     VoiceStateStore
 } from "@webpack/common";
 
+import { assistantName, AssistantRow, isAssistantOpen, setAssistantOpen, useAssistant } from "./Assistant";
+import { Calculator } from "./Calculator";
 import { canEditChannels, ChannelEdit } from "./ChannelEdit";
 import { channelContext, guildContext, voiceUserContext } from "./context";
 import { MemberActions } from "./Members";
@@ -127,7 +129,11 @@ export const I = {
     link: "M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1",
     edit: "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4",
     trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6",
-    friends: "M9 11a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M17 11l2 2 4-4"
+    friends: "M9 11a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M17 11l2 2 4-4",
+    calc: "M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM8.500 7.500h7M8.500 12h.010M12 12h.010M15.500 12h.010M8.500 16.500h.010M12 16.500h.010M15.500 16.500h.010",
+    spark: "M11 3l1.900 5.100L18 10l-5.100 1.900L11 17l-1.900-5.100L4 10l5.100-1.900L11 3zM18.500 15l.900 2.100 2.100.900-2.100.900-.900 2.100-.900-2.100-2.100-.900 2.100-.900.900-2.100z",
+    send: "M5 12l15-7-6 15-2.500-6.500L5 12z",
+    copy: "M9 9h11v11H9zM5 15V4h11"
 };
 
 export const Badge = ({ n }: { n: number; }) => n > 0 ? <span className="gh-badge">{n > 99 ? "99+" : n}</span> : null;
@@ -354,6 +360,7 @@ function DirectMessages({ query, top }: { query: string; top?: any; }) {
     useStores([PrivateChannelSortStore, ChannelStore, ReadStateStore, SelectedChannelStore, PresenceStore, UserStore], 1500);
     const ids: string[] = safe(() => PrivateChannelSortStore.getPrivateChannelIds(), []);
     const selectedChannel = SelectedChannelStore.getChannelId();
+    const aiOpen = useAssistant();
 
     const rows = ids.map(id => {
         const c: any = ChannelStore.getChannel(id);
@@ -368,7 +375,7 @@ function DirectMessages({ query, top }: { query: string; top?: any; }) {
         return (
             <button
                 key={id}
-                className={"gh-channel gh-dm" + (id === selectedChannel ? " gh-on" : "") + (mentions ? " gh-unread" : "")}
+                className={"gh-channel gh-dm" + (id === selectedChannel && !aiOpen ? " gh-on" : "") + (mentions ? " gh-unread" : "")}
                 onClick={() => NavigationRouter.transitionTo(`/channels/@me/${id}`)}
                 onContextMenu={e => channelContext(e, id)}
             >
@@ -386,13 +393,14 @@ function DirectMessages({ query, top }: { query: string; top?: any; }) {
         <div className="gh-channels" onWheel={e => { if (settings.store.layout === "top") e.currentTarget.scrollLeft += e.deltaY; }}>
             {top}
             {!query && (
-                <button className={"gh-channel" + (!selectedChannel ? " gh-on" : "")}
+                <button className={"gh-channel" + (!selectedChannel && !aiOpen ? " gh-on" : "")}
                     onClick={() => NavigationRouter.transitionTo("/channels/@me")}>
                     <Icon d={I.friends} size={16} />
                     <span className="gh-channel-name">Friends</span>
                 </button>
             )}
             <div className="gh-cat-head gh-static"><span>Direct Messages</span></div>
+            {matches(assistantName(), query) && <AssistantRow />}
             {rows}
             {!rows.some(Boolean) && <div className="gh-empty">{query ? `Nobody matches “${query}”.` : "No conversations yet."}</div>}
         </div>
@@ -489,8 +497,11 @@ export function Hub() {
     const [, repaint] = useState(0);
     const s = settings.use(["focusMode", "hideMembers", "layout"]);
     const [query, setQuery] = useState("");
-    const [mod, setMod] = useState(false);
-    const [prefs, setPrefs] = useState(false);
+    // One drawer at a time: member finder, settings, calculator or assistant.
+    const [panel, setPanel] = useState<null | "mod" | "prefs" | "calc">(null);
+    const toggle = (which: "mod" | "prefs" | "calc") => setPanel(v => v === which ? null : which);
+    const mod = panel === "mod", prefs = panel === "prefs";
+    const aiOpen = useAssistant();
     const [grid, setGrid] = useState(false);
     const [menu, setMenu] = useState(false);
     const [editing, setEditing] = useState(false);
@@ -501,7 +512,9 @@ export function Hub() {
             if (!e.ctrlKey || !e.altKey || e.shiftKey) return;
             const k = e.key.toLowerCase();
             if (k === "s") inputRef.current?.focus();
-            else if (k === "d") setMod(v => !v);
+            else if (k === "d") toggle("mod");
+            else if (k === "c") toggle("calc");
+            else if (k === "a") setAssistantOpen(!isAssistantOpen());
             else if (k === "g") setGrid(v => !v);
             else return;
             e.preventDefault();
@@ -600,7 +613,10 @@ export function Hub() {
             );
 
     return (
-        <div className="gh-hub-inner">
+        <div className="gh-hub-inner" onClickCapture={e => {
+            // Picking any other place in the hub leaves the assistant's chat.
+            if ((e.target as HTMLElement).closest?.(".gh-channel:not(.gh-ai-row), .gh-page, .gh-ping")) setAssistantOpen(false);
+        }}>
             <div className="gh-top">
                 <label className="gh-search">
                     <Icon d={I.search} />
@@ -627,7 +643,7 @@ export function Hub() {
                     ))}
                 </nav>
                 <div className="gh-tools">
-                    <button className={"gh-tool" + (mod ? " gh-on" : "")} disabled={!guildId} onClick={() => { setPrefs(false); setMod(v => !v); }}
+                    <button className={"gh-tool" + (mod ? " gh-on" : "")} disabled={!guildId} onClick={() => toggle("mod")}
                         aria-label="Find and moderate members (Ctrl+Alt+D)">
                         <Icon d={I.shield} />
                     </button>
@@ -638,7 +654,13 @@ export function Hub() {
                     <button className="gh-tool" onClick={() => flip("focusMode")} aria-label="Focus on chat (Ctrl+Alt+F)">
                         <Icon d={I.focus} />
                     </button>
-                    <button className={"gh-tool" + (prefs ? " gh-on" : "")} onClick={() => { setMod(false); setPrefs(v => !v); }} aria-label="Glasshouse settings">
+                    <button className={"gh-tool" + (panel === "calc" ? " gh-on" : "")} onClick={() => toggle("calc")} aria-label="Calculator (Ctrl+Alt+C)">
+                        <Icon d={I.calc} />
+                    </button>
+                    <button className={"gh-tool" + (aiOpen ? " gh-on" : "")} onClick={() => setAssistantOpen(!aiOpen)} aria-label="Assistant (Ctrl+Alt+A)">
+                        <Icon d={I.spark} />
+                    </button>
+                    <button className={"gh-tool" + (prefs ? " gh-on" : "")} onClick={() => toggle("prefs")} aria-label="Glasshouse settings">
                         <Icon d={I.sliders} />
                     </button>
                 </div>
@@ -678,7 +700,8 @@ export function Hub() {
                 ? editing ? <ChannelEdit guildId={guildId} onDone={() => setEditing(false)} /> : <Channels guildId={guildId} query={q} top={pingStrip} />
                 : <DirectMessages query={q} top={pingStrip} />}
 
-            {prefs && <QuickSettings onClose={() => setPrefs(false)} />}
+            {prefs && <QuickSettings onClose={() => setPanel(null)} />}
+            {panel === "calc" && <Calculator onClose={() => setPanel(null)} />}
             {grid && <ServerGrid onClose={() => setGrid(false)} />}
             {s.focusMode && ReactDOM.createPortal(
                 <button className="gh-focus-exit" onClick={() => flip("focusMode")} aria-label="Exit focus (Ctrl+Alt+F)">
@@ -687,7 +710,7 @@ export function Hub() {
                 </button>,
                 portalHost()
             )}
-            {mod && guildId && <ModDrawer guildId={guildId} onClose={() => setMod(false)} />}
+            {mod && guildId && <ModDrawer guildId={guildId} onClose={() => setPanel(null)} />}
         </div>
     );
 }
