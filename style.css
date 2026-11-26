@@ -4564,7 +4564,7 @@ body.gh-motion-off .gh-aiw .gh-aip-dots i {
     background: #fff;
     clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
     opacity: 0;
-    animation: gh-rise 6s linear infinite;
+    animation: gh-banner-glint 6s linear infinite;
 }
 
 .gh-aiw .gh-aip-banner i:nth-child(2) { left: 22%; width: 7px; height: 7px; animation-delay: 1.4s; animation-duration: 7s; }
@@ -4574,7 +4574,7 @@ body.gh-motion-off .gh-aiw .gh-aip-dots i {
 .gh-aiw .gh-aip-banner i:nth-child(6) { left: 80%; width: 6px; height: 6px; animation-delay: 2.1s; }
 .gh-aiw .gh-aip-banner i:nth-child(7) { left: 92%; width: 10px; height: 10px; animation-delay: 4.4s; animation-duration: 6.5s; }
 
-@keyframes gh-rise {
+@keyframes gh-banner-glint {
     0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
     15% { opacity: 0.95; }
     70% { opacity: 0.7; }
