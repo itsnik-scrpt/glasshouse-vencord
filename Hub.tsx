@@ -663,7 +663,7 @@ export function Hub() {
                     <button className={"gh-tool" + (panel === "calc" ? " gh-on" : "")} onClick={() => toggle("calc")} aria-label="Calculator (Ctrl+Alt+C)">
                         <Icon d={I.calc} />
                     </button>
-                    <button className={"gh-tool" + (aiOpen || aiFloating ? " gh-on" : "")} onClick={toggleAssistant} aria-label="Assistant (Ctrl+Alt+A)">
+                    <button className={"gh-tool" + (aiFloating ? " gh-on" : "")} onClick={toggleAssistant} aria-label="Assistant (Ctrl+Alt+A)">
                         <Icon d={I.spark} />
                     </button>
                     <button className={"gh-tool" + (prefs ? " gh-on" : "")} onClick={() => toggle("prefs")} aria-label="Glasshouse settings">

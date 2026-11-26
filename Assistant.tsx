@@ -394,22 +394,9 @@ export function setAssistantFloating(next: boolean) {
     }
     changed();
 }
-/** The hub button and Ctrl+Alt+A: close whichever view is open, or open the one used last. */
+/** The hub button and Ctrl+Alt+A: open the floating window, or close it if it is open. The full chat opens from the DM list. */
 export function toggleAssistant() {
-    if (open || floating) {
-        open = false;
-        floating = false;
-        changed();
-    } else if (win.mode === "float") setAssistantFloating(true);
-    else setAssistantOpen(true);
-}
-/** Going anywhere else in Discord leaves the assistant's chat. */
-export function assistantPathCheck() {
-    if (open && location.pathname !== openedPath) setAssistantOpen(false);
-}
-export function onAssistantChange(fn: () => void) {
-    listeners.add(fn);
-    return () => { listeners.delete(fn); };
+    setAssistantFloating(!floating);
 }
 
 async function load() {
