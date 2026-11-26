@@ -42,7 +42,8 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 - Web search, picture attachments, and your servers' emojis, stickers and GIFs in the chat
 - Point it at things with `##server`, `#channel` or `@person`, or open it as a floating window over the chat you are reading
 - It never changes anything by itself. It can propose server changes (channels, categories, roles, name and description) as a card, and you approve each one
-- It cannot send, edit or delete messages
+- It can speak in a server channel under its own name through a webhook: it drafts the message and you press Send
+- It cannot post as you, message in DMs, or edit or delete messages
 - Runs on Claude with your own Anthropic API key
 
 **Server picker**
