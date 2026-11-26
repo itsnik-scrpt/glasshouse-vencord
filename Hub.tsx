@@ -142,7 +142,8 @@ export const I = {
     copy: "M9 9h11v11H9zM5 15V4h11",
     lock: "M6 11h12v9H6zM8.500 11V8a3.500 3.500 0 0 1 7 0v3",
     down: "M6 9l6 6 6-6",
-    back: "M15 6l-6 6 6 6"
+    back: "M15 6l-6 6 6 6",
+    chat: "M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4 3.500V17H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
 };
 
 export const Badge = ({ n }: { n: number; }) => n > 0 ? <span className="gh-badge">{n > 99 ? "99+" : n}</span> : null;
@@ -217,9 +218,11 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
         list.sort((a, b) => (Number(isVoice(a)) - Number(isVoice(b))) || (a.position - b.position));
     }
 
+    const openChat = (c: any) => NavigationRouter.transitionToGuild(guildId, c.id);
+    // Like Discord: the first click joins a voice channel, a click while already in it opens its chat.
     const open = (c: any) => {
-        if (isVoice(c)) safe(() => VoiceActions.selectVoiceChannel(c.id), null);
-        else NavigationRouter.transitionToGuild(guildId, c.id);
+        if (isVoice(c) && safe(() => SelectedChannelStore.getVoiceChannelId(), null) !== c.id) safe(() => VoiceActions.selectVoiceChannel(c.id), null);
+        else openChat(c);
     };
 
     const row = (c: any) => {
@@ -255,6 +258,12 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
                 >
                     <Icon d={channelIcon(c.type)} size={16} />
                     <span className="gh-channel-name">{c.name}</span>
+                    {isVoice(c) && (
+                        <span className="gh-vchat" role="button" aria-label="Open chat"
+                            onClick={e => { e.stopPropagation(); openChat(c); }}>
+                            <Icon d={I.chat} size={15} />
+                        </span>
+                    )}
                     {inVoice > 0 && <span className="gh-count">{inVoice}</span>}
                     <Badge n={mentions} />
                 </button>

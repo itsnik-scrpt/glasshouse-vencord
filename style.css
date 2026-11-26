@@ -5687,3 +5687,24 @@ body.gh-motion-off .gh-cmenu,
 body.gh-motion-off .gh-ce-details {
     animation: none;
 }
+
+/* ═════ voice channels: a button to open the channel's chat without joining ═════ */
+
+#gh-hub .gh-vchat {
+    display: flex;
+    flex: none;
+    padding: 3px;
+    border-radius: 6px;
+    color: var(--_muted);
+    opacity: 0;
+    transition: opacity 140ms ease, color 140ms ease;
+}
+
+#gh-hub .gh-channel:hover .gh-vchat,
+#gh-hub .gh-channel.gh-on .gh-vchat {
+    opacity: 1;
+}
+
+#gh-hub .gh-vchat:hover {
+    color: var(--_accent);
+}
