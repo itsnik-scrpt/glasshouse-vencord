@@ -28,6 +28,27 @@ export async function askAssistant(_: IpcMainInvokeEvent, apiKey: string, payloa
     }
 }
 
+const IMAGE_HOSTS = [".discordapp.com", ".discordapp.net", ".tenor.com", ".giphy.com", ".klipy.com"];
+
+/**
+ * Downloads a sticker or a GIF's still frame so the assistant can be shown it.
+ * Only picture hosts Discord itself uses are allowed, and only small pictures.
+ */
+export async function fetchImage(_: IpcMainInvokeEvent, url: string) {
+    try {
+        const target = new URL(url);
+        if (target.protocol !== "https:" || !IMAGE_HOSTS.some(host => ("." + target.hostname).endsWith(host))) return null;
+        const res = await fetch(target, { signal: AbortSignal.timeout(15_000) });
+        const type = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+        if (!res.ok || !["image/png", "image/jpeg", "image/gif", "image/webp"].includes(type)) return null;
+        const bytes = Buffer.from(await res.arrayBuffer());
+        if (bytes.length > 4.5 * 1024 * 1024) return null;
+        return `data:${type};base64,${bytes.toString("base64")}`;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Writes the theme that shipped with this build into Vencord's themes folder when the
  * copy there is different, so the theme updates together with the plugin.

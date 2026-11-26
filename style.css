@@ -4825,3 +4825,252 @@ body.gh-motion-off .gh-aiw .gh-aip-banner i {
 .gh-aif .gh-aip-tools {
     right: 10px;
 }
+
+/* ───── assistant chat: emoji, sticker and GIF picker ───── */
+
+.gh-emoji {
+    width: 1.375em;
+    height: 1.375em;
+    margin: 0 1px;
+    vertical-align: -0.3em;
+    object-fit: contain;
+}
+
+.gh-emoji.gh-jumbo {
+    width: 48px;
+    height: 48px;
+    vertical-align: bottom;
+}
+
+.gh-aiw .gh-aip-sticker {
+    display: block;
+    width: 160px;
+    height: 160px;
+    margin: 4px 0;
+    object-fit: contain;
+}
+
+.gh-aiw .gh-aip-gif {
+    display: block;
+    max-width: min(320px, 100%);
+    max-height: 260px;
+    margin: 4px 0;
+    border-radius: 10px;
+}
+
+.gh-aiw .gh-aip-gifbtn {
+    width: auto;
+    padding: 0 7px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.gh-aiw .gh-pick {
+    display: flex;
+    flex-direction: column;
+    height: 320px;
+    max-height: 46vh;
+    border-bottom: 1px solid var(--_line);
+}
+
+.gh-aiw .gh-pick-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    padding: 8px 8px 6px;
+}
+
+.gh-aiw .gh-pick-head nav {
+    display: flex;
+    gap: 2px;
+    flex: none;
+}
+
+.gh-aiw .gh-pick-head nav button {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: var(--_muted);
+    font-size: 13px;
+    font-weight: 600;
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.gh-aiw .gh-pick-head nav button:hover {
+    color: var(--_text);
+}
+
+.gh-aiw .gh-pick-head nav button.gh-on {
+    color: var(--_text);
+    background: var(--_hover);
+}
+
+.gh-aiw .gh-pick-head label {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid var(--_edge);
+    border-radius: 8px;
+    color: var(--_muted);
+}
+
+.gh-aiw .gh-pick-head input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: var(--_text);
+    font: 13.5px var(--font-primary);
+}
+
+.gh-aiw .gh-pick-body {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    padding: 0 8px 8px;
+}
+
+.gh-aiw .gh-pick-body section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 120px;
+}
+
+.gh-aiw .gh-pick-body h5 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 6px 2px 4px;
+    background: var(--gh-raised, var(--_solid));
+    color: var(--_muted);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gh-aiw .gh-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+    gap: 2px;
+}
+
+.gh-aiw .gh-pick-grid button {
+    display: grid;
+    place-items: center;
+    height: 38px;
+    border-radius: 8px;
+    transition: background-color 120ms ease, transform 120ms ease;
+}
+
+.gh-aiw .gh-pick-grid button:hover {
+    background: var(--_hover);
+    transform: scale(1.08);
+}
+
+.gh-aiw .gh-pick-grid img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.gh-aiw .gh-pick-char {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.gh-aiw .gh-pick-big {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 6px;
+}
+
+.gh-aiw .gh-pick-big button {
+    height: 92px;
+}
+
+.gh-aiw .gh-pick-big img {
+    width: 80px;
+    height: 80px;
+}
+
+.gh-aiw .gh-pick-gifs {
+    columns: 2;
+    column-gap: 6px;
+}
+
+.gh-aiw .gh-pick-gifs button {
+    display: block;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    break-inside: avoid;
+    background: var(--_inset);
+    transition: filter 120ms ease;
+}
+
+.gh-aiw .gh-pick-gifs button:hover {
+    filter: brightness(1.12);
+}
+
+.gh-aiw .gh-pick-gifs video,
+.gh-aiw .gh-pick-gifs img {
+    display: block;
+    width: 100%;
+    min-height: 60px;
+}
+
+.gh-aiw .gh-pick-empty {
+    margin: 0;
+    padding: 28px 12px;
+    color: var(--_muted);
+    font-size: 13.5px;
+    text-align: center;
+}
+
+/* ───── the assistant's profile card ───── */
+
+.gh-aip-pop {
+    position: fixed;
+    z-index: 960;
+    width: 300px;
+    max-height: calc(100vh - 16px);
+    border-radius: 16px;
+    overflow: hidden auto;
+    box-shadow: 0 18px 50px rgb(0 0 0 / 40%);
+    animation: gh-card-in 180ms ease both;
+}
+
+@keyframes gh-card-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+.gh-aip-pop .gh-aip-profile {
+    display: block !important;
+    width: auto;
+    overflow: visible;
+}
+
+.gh-aip-pop .gh-aip-banner {
+    height: 104px;
+}
+
+.gh-aip-pop .gh-aip-card {
+    margin-bottom: 12px;
+}
+
+body.gh-motion-off .gh-aip-pop {
+    animation: none;
+}
