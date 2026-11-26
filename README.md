@@ -12,9 +12,7 @@ A full layout replacement for Discord, built as a [Vencord](https://vencord.dev)
 
 It swaps Discord's server rail and channel list for a single hub, adds a fullscreen server picker with your own groups, and restyles chat, friends and settings to match.
 
-[![Watch the Glasshouse film](media/film-poster.png)](media/glasshouse-film.mp4)
-
-*A 90-second tour. Click the picture to play it, or [download it in full quality](https://github.com/itsnik-scrpt/glasshouse-vencord/releases/latest/download/Glasshouse-Film-1080p.mp4).*
+**[Watch the 90-second tour on YouTube](https://www.youtube.com/watch?v=dRTTZQiwyDU)**
 
 ![Glasshouse in the dark theme](screenshots/dark.png)
 
