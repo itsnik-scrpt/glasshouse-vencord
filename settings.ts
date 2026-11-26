@@ -165,6 +165,11 @@ export const settings = definePluginSettings({
         description: "Assistant: picture link (https). Leave empty for the orb.",
         default: ""
     },
+    assistantWeb: {
+        type: OptionType.BOOLEAN,
+        description: "Assistant: let it search the web and read links (each search is billed to your key)",
+        default: true
+    },
     assistantModel: {
         type: OptionType.SELECT,
         description: "Assistant: model",

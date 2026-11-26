@@ -5057,10 +5057,16 @@ body.gh-motion-off .gh-aiw .gh-aip-banner i {
     to { opacity: 1; transform: none; }
 }
 
+.gh-aip-pop {
+    background: hsl(var(--gh-accent-h, 325) 50% 13%);
+}
+
+/* flow-root keeps the card's bottom margin inside the gradient, so no strip of the page shows under it */
 .gh-aip-pop .gh-aip-profile {
-    display: block !important;
+    display: flow-root !important;
     width: auto;
     overflow: visible;
+    padding-bottom: 12px;
 }
 
 .gh-aip-pop .gh-aip-banner {
@@ -5068,9 +5074,48 @@ body.gh-motion-off .gh-aiw .gh-aip-banner i {
 }
 
 .gh-aip-pop .gh-aip-card {
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    padding-bottom: 14px;
+}
+
+.gh-aip-pop .gh-aip-actions {
+    margin-top: 16px;
 }
 
 body.gh-motion-off .gh-aip-pop {
     animation: none;
+}
+
+/* web sources under an answer */
+.gh-aiw .gh-aip-sources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.gh-aiw .gh-aip-sources small {
+    color: var(--_muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gh-aiw .gh-aip-sources a {
+    max-width: 240px;
+    padding: 3px 9px;
+    border: 1px solid var(--_edge);
+    border-radius: 999px;
+    color: var(--_text);
+    font-size: 12.5px;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.gh-aiw .gh-aip-sources a:hover {
+    border-color: var(--_accent);
+    background: var(--_accent-soft);
 }
