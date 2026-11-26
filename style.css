@@ -5315,3 +5315,17 @@ body.gh-motion-off .gh-aip-pop {
     display: block;
     margin-top: 8px;
 }
+
+/* The tick box is a button: without this its default padding pushes the tick off centre. */
+.gh-aiw .gh-aip-tick {
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 0;
+}
+
+.gh-aiw .gh-aip-tick .gh-ico {
+    display: block;
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
