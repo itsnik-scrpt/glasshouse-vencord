@@ -293,7 +293,10 @@ function Invoke-Patcher($Channel, [string]$Action) {
     $env:VENCORD_DEV_INSTALL = '1'
     $process = Start-Process -FilePath $exe -ArgumentList $Action, '-branch', $Channel.Branch -WindowStyle Hidden -PassThru `
         -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+    # Without holding the handle, PowerShell cannot read the exit code of a process it did not wait for.
+    $handle = $process.Handle
     while (-not $process.HasExited) { Pump; Start-Sleep -Milliseconds 50 }
+    $process.WaitForExit()
     if ($process.ExitCode -ne 0) {
         throw "Vencord's installer could not patch $($Channel.Name) (code $($process.ExitCode)). Details are in $log.err"
     }
@@ -444,6 +447,8 @@ function Install-Glasshouse {
             Set-Text 'Installed, with one step left' 'Your Vencord settings file could not be read, so it was left alone. In Discord, open Settings, then Vencord: turn on the Glasshouse and ThemeAttributes plugins, and the Glasshouse theme.'
         }
     } catch {
+        # Discord was closed for the patch; bring it back so a failure does not leave it shut.
+        try { Start-Discord $chosen } catch { }
         Show-Problem $_.Exception.Message
     }
 }
