@@ -381,22 +381,7 @@ const Deco = ({ live }: { live?: boolean; }) => (
 
 // Discord's own badge artwork, by name. Shown on this profile only, inside your own app.
 const BADGES: [string, string][] = [
-    ["Discord Staff", "5e74e9b61934fc1f67c65515d1f7e60d"],
-    ["Partnered Server Owner", "3f9748e53446a137a052f3454e2de41e"],
-    ["Moderator Programs Alumni", "fee1624003e2fee35cb398e125dc479b"],
-    ["HypeSquad Events", "bf01d1073931f921909045f3a39fd264"],
-    ["HypeSquad Bravery", "8a88d63823d8a71cd5e390baa45efa02"],
-    ["HypeSquad Brilliance", "011940fd013da3f7fb926e4a1cd2e618"],
-    ["HypeSquad Balance", "3aa41de486fa12454c3761e8e223442e"],
-    ["Bug Hunter", "2717692c7dca7289b35297368a940dd0"],
-    ["Gold Bug Hunter", "848f79194d4be5ff5f81505cbd0ce1e6"],
-    ["Active Developer", "6bdc42827a38498929a4920da12695d9"],
-    ["Early Verified Bot Developer", "6df5892e0f35b051f8b61eace34f4967"],
-    ["Early Supporter", "7060786766c9c840eb3019e725d2b358"],
-    ["Nitro Opal", "5b154df19c53dce2af92c9b61e6be5e2"],
-    ["Server Booster", "ec92202290b48d0879b7413d2dde3bab"],
-    ["Completed a Quest", "7d9ae358c8c5e118768335dbe68b4fb8"],
-    ["Originally known as", "6de6d34650760ba5551a79732e98ed60"],
+    ["Nitro", "5b154df19c53dce2af92c9b61e6be5e2"],
     ["Orbs", "83d8a1eb09a8d64e59233eec5d4d5c2d"]
 ];
 

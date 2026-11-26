@@ -20,6 +20,16 @@ It swaps Discord's server rail and channel list for a single hub, adds a fullscr
 
 ![Glasshouse in the light theme](screenshots/light.png)
 
+**Prism, the built-in assistant**
+
+![Prism's own conversation, with its profile and a message waiting to be sent](screenshots/prism.png)
+
+![Prism as a floating window over a chat, with server changes waiting for approval](screenshots/float.png)
+
+| Installer |
+|---|
+| ![The Glasshouse installer](screenshots/installer.png) |
+
 *Preview images, drawn with sample data.*
 
 ## What it does
