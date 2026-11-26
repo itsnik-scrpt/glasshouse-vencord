@@ -85,6 +85,7 @@ function attachAssistant() {
     if (!assistantHost) {
         assistantHost = document.createElement("div");
         assistantHost.id = "gh-assistant";
+        assistantHost.className = "gh-aiw";
         assistantRoot = createRoot(assistantHost);
         assistantHost.addEventListener("keydown", stopKeys);
         assistantRoot.render(<ErrorBoundary noop><AssistantPage /></ErrorBoundary>);

@@ -38,7 +38,7 @@ import {
     VoiceStateStore
 } from "@webpack/common";
 
-import { assistantName, AssistantRow, isAssistantOpen, setAssistantOpen, useAssistant } from "./Assistant";
+import { AssistantFloat, assistantName, AssistantRow, isAssistantFloating, setAssistantOpen, toggleAssistant, useAssistant } from "./Assistant";
 import { Calculator } from "./Calculator";
 import { canEditChannels, ChannelEdit } from "./ChannelEdit";
 import { channelContext, guildContext, voiceUserContext } from "./context";
@@ -130,6 +130,8 @@ export const I = {
     edit: "M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4",
     trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6",
     friends: "M9 11a3.500 3.500 0 1 0 0-7 3.500 3.500 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M17 11l2 2 4-4",
+    float: "M3 5h18v14H3zM12 12h6v4h-6z",
+    expand: "M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7",
     calc: "M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM8.500 7.500h7M8.500 12h.010M12 12h.010M15.500 12h.010M8.500 16.500h.010M12 16.500h.010M15.500 16.500h.010",
     spark: "M11 3l1.900 5.100L18 10l-5.100 1.900L11 17l-1.900-5.100L4 10l5.100-1.900L11 3zM18.500 15l.900 2.100 2.100.900-2.100.900-.900 2.100-.900-2.100-2.100-.900 2.100-.900.900-2.100z",
     send: "M5 12l15-7-6 15-2.500-6.500L5 12z",
@@ -502,6 +504,7 @@ export function Hub() {
     const toggle = (which: "mod" | "prefs" | "calc") => setPanel(v => v === which ? null : which);
     const mod = panel === "mod", prefs = panel === "prefs";
     const aiOpen = useAssistant();
+    const aiFloating = isAssistantFloating();
     const [grid, setGrid] = useState(false);
     const [menu, setMenu] = useState(false);
     const [editing, setEditing] = useState(false);
@@ -514,7 +517,7 @@ export function Hub() {
             if (k === "s") inputRef.current?.focus();
             else if (k === "d") toggle("mod");
             else if (k === "c") toggle("calc");
-            else if (k === "a") setAssistantOpen(!isAssistantOpen());
+            else if (k === "a") toggleAssistant();
             else if (k === "g") setGrid(v => !v);
             else return;
             e.preventDefault();
@@ -657,7 +660,7 @@ export function Hub() {
                     <button className={"gh-tool" + (panel === "calc" ? " gh-on" : "")} onClick={() => toggle("calc")} aria-label="Calculator (Ctrl+Alt+C)">
                         <Icon d={I.calc} />
                     </button>
-                    <button className={"gh-tool" + (aiOpen ? " gh-on" : "")} onClick={() => setAssistantOpen(!aiOpen)} aria-label="Assistant (Ctrl+Alt+A)">
+                    <button className={"gh-tool" + (aiOpen || aiFloating ? " gh-on" : "")} onClick={toggleAssistant} aria-label="Assistant (Ctrl+Alt+A)">
                         <Icon d={I.spark} />
                     </button>
                     <button className={"gh-tool" + (prefs ? " gh-on" : "")} onClick={() => toggle("prefs")} aria-label="Glasshouse settings">
@@ -702,6 +705,7 @@ export function Hub() {
 
             {prefs && <QuickSettings onClose={() => setPanel(null)} />}
             {panel === "calc" && <Calculator onClose={() => setPanel(null)} />}
+            {aiFloating && <AssistantFloat />}
             {grid && <ServerGrid onClose={() => setGrid(false)} />}
             {s.focusMode && ReactDOM.createPortal(
                 <button className="gh-focus-exit" onClick={() => flip("focusMode")} aria-label="Exit focus (Ctrl+Alt+F)">

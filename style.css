@@ -3712,7 +3712,7 @@ body.gh-motion-off .gh-flyout {
     line-height: 1.3;
 }
 
-#gh-assistant {
+.gh-aiw {
     --_inset: var(--gh-inset, rgb(127 127 127 / 12%));
     --_solid: var(--gh-solid, var(--background-base-low));
     --_edge: var(--gh-edge, rgb(127 127 127 / 25%));
@@ -3724,16 +3724,19 @@ body.gh-motion-off .gh-flyout {
     --_text: var(--text-default, var(--text-normal));
     --_muted: var(--text-muted);
 
-    position: absolute;
-    inset: 0;
-    z-index: 2;
     color: var(--_text);
     font-family: var(--font-primary);
     font-size: 15px;
     animation: gh-fade var(--gh-dur, 180ms) var(--gh-ease, ease) both;
 }
 
-#gh-assistant button {
+#gh-assistant {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+
+.gh-aiw button {
     border: 0;
     background: none;
     color: inherit;
@@ -3741,13 +3744,13 @@ body.gh-motion-off .gh-flyout {
     cursor: pointer;
 }
 
-#gh-assistant .gh-aip {
+.gh-aiw .gh-aip {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-#gh-assistant .gh-aip-head {
+.gh-aiw .gh-aip-head {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -3757,11 +3760,11 @@ body.gh-motion-off .gh-flyout {
     border-bottom: 1px solid var(--_line);
 }
 
-#gh-assistant .gh-aip-head strong {
+.gh-aiw .gh-aip-head strong {
     font: 700 16px var(--font-display);
 }
 
-#gh-assistant .gh-aip-head small {
+.gh-aiw .gh-aip-head small {
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -3771,13 +3774,13 @@ body.gh-motion-off .gh-flyout {
     font-size: 13px;
 }
 
-#gh-assistant .gh-aip-face {
+.gh-aiw .gh-aip-face {
     position: relative;
     display: block;
     flex: none;
 }
 
-#gh-assistant .gh-aip-btn {
+.gh-aiw .gh-aip-btn {
     display: grid;
     place-items: center;
     width: 34px;
@@ -3788,65 +3791,65 @@ body.gh-motion-off .gh-flyout {
     transition: color 160ms ease, background-color 160ms ease;
 }
 
-#gh-assistant .gh-aip-btn:hover {
+.gh-aiw .gh-aip-btn:hover {
     color: var(--_text);
     background: var(--_hover);
 }
 
-#gh-assistant .gh-aip-btn.gh-on {
+.gh-aiw .gh-aip-btn.gh-on {
     color: var(--_accent);
 }
 
-#gh-assistant .gh-aip-btn:disabled {
+.gh-aiw .gh-aip-btn:disabled {
     opacity: 0.4;
     cursor: default;
 }
 
-#gh-assistant .gh-aip-body {
+.gh-aiw .gh-aip-body {
     flex: 1;
     min-height: 0;
     display: flex;
 }
 
-#gh-assistant .gh-aip-chat {
+.gh-aiw .gh-aip-chat {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
 }
 
-#gh-assistant .gh-aip-log {
+.gh-aiw .gh-aip-log {
     flex: 1;
     min-height: 0;
     overflow: hidden auto;
     padding: 24px 0 8px;
 }
 
-#gh-assistant .gh-aip-intro {
+.gh-aiw .gh-aip-intro {
     padding: 0 20px 18px;
 }
 
-#gh-assistant .gh-aip-intro h2 {
+.gh-aiw .gh-aip-intro h2 {
     margin: 12px 0 6px;
     font: 700 30px var(--font-display);
     letter-spacing: -0.02em;
 }
 
-#gh-assistant .gh-aip-intro p {
+.gh-aiw .gh-aip-intro p {
     max-width: 640px;
     margin: 0;
     color: var(--_muted);
     line-height: 1.45;
 }
 
-#gh-assistant .gh-aip-starters {
+.gh-aiw .gh-aip-starters {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 16px;
 }
 
-#gh-assistant .gh-aip-starters button {
+.gh-aiw .gh-aip-starters button {
     padding: 8px 14px;
     border: 1px solid var(--_edge);
     border-radius: 999px;
@@ -3854,12 +3857,12 @@ body.gh-motion-off .gh-flyout {
     transition: border-color 160ms ease, background-color 160ms ease;
 }
 
-#gh-assistant .gh-aip-starters button:hover {
+.gh-aiw .gh-aip-starters button:hover {
     border-color: var(--_accent);
     background: var(--_accent-soft);
 }
 
-#gh-assistant .gh-aip-day {
+.gh-aiw .gh-aip-day {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -3869,95 +3872,95 @@ body.gh-motion-off .gh-flyout {
     font-weight: 600;
 }
 
-#gh-assistant .gh-aip-day::before,
-#gh-assistant .gh-aip-day::after {
+.gh-aiw .gh-aip-day::before,
+.gh-aiw .gh-aip-day::after {
     content: "";
     flex: 1;
     height: 1px;
     background: var(--_line);
 }
 
-#gh-assistant .gh-aip-msg {
+.gh-aiw .gh-aip-msg {
     display: flex;
     gap: 14px;
     padding: 2px 20px;
     user-select: text;
 }
 
-#gh-assistant .gh-aip-msg.gh-head {
+.gh-aiw .gh-aip-msg.gh-head {
     margin-top: 16px;
 }
 
-#gh-assistant .gh-aip-msg:hover {
+.gh-aiw .gh-aip-msg:hover {
     background: var(--_hover);
 }
 
-#gh-assistant .gh-aip-gutter {
+.gh-aiw .gh-aip-gutter {
     width: 40px;
     flex: none;
     display: flex;
     justify-content: center;
 }
 
-#gh-assistant .gh-aip-gutter time {
+.gh-aiw .gh-aip-gutter time {
     visibility: hidden;
     color: var(--_muted);
     font-size: 11px;
     line-height: 22px;
 }
 
-#gh-assistant .gh-aip-msg:hover .gh-aip-gutter time {
+.gh-aiw .gh-aip-msg:hover .gh-aip-gutter time {
     visibility: visible;
 }
 
-#gh-assistant .gh-aip-av {
+.gh-aiw .gh-aip-av {
     width: 40px;
     height: 40px;
     border-radius: 50%;
 }
 
-#gh-assistant .gh-aip-content {
+.gh-aiw .gh-aip-content {
     flex: 1;
     min-width: 0;
 }
 
-#gh-assistant .gh-aip-meta {
+.gh-aiw .gh-aip-meta {
     display: flex;
     align-items: center;
     gap: 7px;
     margin-bottom: 2px;
 }
 
-#gh-assistant .gh-aip-meta strong {
+.gh-aiw .gh-aip-meta strong {
     font-weight: 600;
 }
 
-#gh-assistant .gh-aip-name {
+.gh-aiw .gh-aip-name {
     color: var(--_accent);
 }
 
-#gh-assistant .gh-aip-meta time {
+.gh-aiw .gh-aip-meta time {
     color: var(--_muted);
     font-size: 12px;
 }
 
-#gh-assistant .gh-aip-text {
+.gh-aiw .gh-aip-text {
     line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
-#gh-assistant .gh-aip-text p {
+.gh-aiw .gh-aip-text p {
     margin: 0;
     white-space: pre-wrap;
 }
 
-#gh-assistant .gh-aip-text p + p,
-#gh-assistant .gh-aip-text p + .gh-aip-code,
-#gh-assistant .gh-aip-text .gh-aip-code + p {
+.gh-aiw .gh-aip-text p + p,
+.gh-aiw .gh-aip-text p + .gh-aip-code,
+.gh-aiw .gh-aip-text .gh-aip-code + p {
     margin-top: 8px;
 }
 
-#gh-assistant .gh-aip-text code {
+.gh-aiw .gh-aip-text code {
     padding: 1px 5px;
     border-radius: 5px;
     background: var(--_inset);
@@ -3965,7 +3968,7 @@ body.gh-motion-off .gh-flyout {
     font-size: 13px;
 }
 
-#gh-assistant .gh-aip-code {
+.gh-aiw .gh-aip-code {
     position: relative;
     max-width: 720px;
     border: 1px solid var(--_edge);
@@ -3973,7 +3976,7 @@ body.gh-motion-off .gh-flyout {
     background: var(--_inset);
 }
 
-#gh-assistant .gh-aip-code pre {
+.gh-aiw .gh-aip-code pre {
     margin: 0;
     padding: 10px 44px 10px 12px;
     white-space: pre-wrap;
@@ -3981,19 +3984,19 @@ body.gh-motion-off .gh-flyout {
     font-size: 15px;
 }
 
-#gh-assistant .gh-aip-code .gh-aip-btn {
+.gh-aiw .gh-aip-code .gh-aip-btn {
     position: absolute;
     top: 3px;
     right: 3px;
 }
 
-#gh-assistant .gh-aip-note {
+.gh-aiw .gh-aip-note {
     margin: 10px 20px 0 74px;
     color: var(--_muted);
     font-size: 13px;
 }
 
-#gh-assistant .gh-aip-typing {
+.gh-aiw .gh-aip-typing {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -4004,17 +4007,17 @@ body.gh-motion-off .gh-flyout {
     font-size: 13px;
 }
 
-#gh-assistant .gh-aip-typing b {
+.gh-aiw .gh-aip-typing b {
     color: var(--_text);
     font-weight: 600;
 }
 
-#gh-assistant .gh-aip-dots {
+.gh-aiw .gh-aip-dots {
     display: flex;
     gap: 3px;
 }
 
-#gh-assistant .gh-aip-dots i {
+.gh-aiw .gh-aip-dots i {
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -4022,19 +4025,19 @@ body.gh-motion-off .gh-flyout {
     animation: gh-aip-dot 1.2s ease-in-out infinite;
 }
 
-#gh-assistant .gh-aip-dots i:nth-child(2) { animation-delay: 0.15s; }
-#gh-assistant .gh-aip-dots i:nth-child(3) { animation-delay: 0.3s; }
+.gh-aiw .gh-aip-dots i:nth-child(2) { animation-delay: 0.15s; }
+.gh-aiw .gh-aip-dots i:nth-child(3) { animation-delay: 0.3s; }
 
 @keyframes gh-aip-dot {
     0%, 60%, 100% { opacity: 0.3; transform: none; }
     30% { opacity: 1; transform: translateY(-2px); }
 }
 
-body.gh-motion-off #gh-assistant .gh-aip-dots i {
+body.gh-motion-off .gh-aiw .gh-aip-dots i {
     animation: none;
 }
 
-#gh-assistant .gh-aip-input {
+.gh-aiw .gh-aip-input {
     display: flex;
     align-items: flex-end;
     gap: 6px;
@@ -4047,11 +4050,11 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     transition: border-color 160ms ease;
 }
 
-#gh-assistant .gh-aip-input:focus-within {
+.gh-aiw .gh-aip-input:focus-within {
     border-color: var(--_accent);
 }
 
-#gh-assistant .gh-aip-input textarea {
+.gh-aiw .gh-aip-input textarea {
     flex: 1;
     min-width: 0;
     min-height: 34px;
@@ -4067,12 +4070,12 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     font: 15px/1.35 var(--font-primary);
 }
 
-#gh-assistant textarea::placeholder,
-#gh-assistant input::placeholder {
+.gh-aiw textarea::placeholder,
+.gh-aiw input::placeholder {
     color: var(--_muted);
 }
 
-#gh-assistant .gh-aip-setup {
+.gh-aiw .gh-aip-setup {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -4084,28 +4087,28 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     background: var(--_inset);
 }
 
-#gh-assistant .gh-aip-setup strong {
+.gh-aiw .gh-aip-setup strong {
     font: 700 16px var(--font-display);
 }
 
-#gh-assistant .gh-aip-setup p {
+.gh-aiw .gh-aip-setup p {
     margin: 0;
     line-height: 1.45;
 }
 
-#gh-assistant .gh-aip-setup small {
+.gh-aiw .gh-aip-setup small {
     color: var(--_muted);
     font-size: 12.5px;
     line-height: 1.4;
 }
 
-#gh-assistant .gh-aip-setup-row {
+.gh-aiw .gh-aip-setup-row {
     display: flex;
     gap: 8px;
 }
 
-#gh-assistant .gh-aip-setup-row input,
-#gh-assistant .gh-aip-card input {
+.gh-aiw .gh-aip-setup-row input,
+.gh-aiw .gh-aip-card input {
     flex: 1;
     min-width: 0;
     height: 36px;
@@ -4120,12 +4123,12 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     transition: border-color 160ms ease;
 }
 
-#gh-assistant .gh-aip-setup-row input:focus,
-#gh-assistant .gh-aip-card input:focus {
+.gh-aiw .gh-aip-setup-row input:focus,
+.gh-aiw .gh-aip-card input:focus {
     border-color: var(--_accent);
 }
 
-#gh-assistant .gh-aip-pill {
+.gh-aiw .gh-aip-pill {
     height: 36px;
     padding: 0 14px;
     flex: none;
@@ -4136,35 +4139,35 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     transition: background-color 160ms ease, border-color 160ms ease, filter 160ms ease;
 }
 
-#gh-assistant .gh-aip-pill:hover {
+.gh-aiw .gh-aip-pill:hover {
     background: var(--_hover);
 }
 
-#gh-assistant .gh-aip-pill.gh-on {
+.gh-aiw .gh-aip-pill.gh-on {
     border-color: transparent;
     background: var(--_accent);
     color: #fff;
 }
 
-#gh-assistant .gh-aip-pill.gh-on:hover {
+.gh-aiw .gh-aip-pill.gh-on:hover {
     filter: brightness(1.08);
 }
 
-#gh-assistant .gh-aip-pill:disabled {
+.gh-aiw .gh-aip-pill:disabled {
     opacity: 0.45;
     cursor: default;
 }
 
 /* profile column */
 
-#gh-assistant .gh-aip-profile {
+.gh-aiw .gh-aip-profile {
     width: 340px;
     flex: none;
     overflow: hidden auto;
     border-left: 1px solid var(--_line);
 }
 
-#gh-assistant .gh-aip-banner {
+.gh-aiw .gh-aip-banner {
     height: 120px;
     background:
         radial-gradient(260px 160px at 12% 0%, hsl(var(--gh-accent-h, 325) 90% 60% / 90%), transparent 70%),
@@ -4172,21 +4175,21 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
         hsl(calc(var(--gh-accent-h, 325) + 55) 80% 50%);
 }
 
-#gh-assistant .gh-aip-card {
+.gh-aiw .gh-aip-card {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     padding: 0 16px 20px;
 }
 
-#gh-assistant .gh-aip-face.gh-big {
+.gh-aiw .gh-aip-face.gh-big {
     align-self: flex-start;
     margin-top: -42px;
     border-radius: 50%;
     box-shadow: 0 0 0 6px var(--_solid);
 }
 
-#gh-assistant .gh-aip-face.gh-big .gh-status {
+.gh-aiw .gh-aip-face.gh-big .gh-status {
     right: 2px;
     bottom: 2px;
     width: 16px;
@@ -4194,7 +4197,7 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     border-width: 4px;
 }
 
-#gh-assistant .gh-aip-card h3 {
+.gh-aiw .gh-aip-card h3 {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -4203,7 +4206,7 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     letter-spacing: -0.01em;
 }
 
-#gh-assistant .gh-aip-card h4 {
+.gh-aiw .gh-aip-card h4 {
     margin: 18px 0 6px;
     color: var(--_muted);
     font-size: 11.5px;
@@ -4212,34 +4215,34 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     text-transform: uppercase;
 }
 
-#gh-assistant .gh-aip-card p,
-#gh-assistant .gh-aip-card ul {
+.gh-aiw .gh-aip-card p,
+.gh-aiw .gh-aip-card ul {
     margin: 0;
     font-size: 14px;
     line-height: 1.45;
 }
 
-#gh-assistant .gh-aip-card ul {
+.gh-aiw .gh-aip-card ul {
     padding-left: 18px;
     list-style: disc;
 }
 
-#gh-assistant .gh-aip-card small {
+.gh-aiw .gh-aip-card small {
     color: var(--_muted);
     font-size: 12.5px;
     line-height: 1.4;
 }
 
-#gh-assistant .gh-aip-card input {
+.gh-aiw .gh-aip-card input {
     flex: none;
 }
 
-#gh-assistant .gh-aip-card input + small,
-#gh-assistant .gh-aip-segment + small {
+.gh-aiw .gh-aip-card input + small,
+.gh-aiw .gh-aip-segment + small {
     margin-top: 6px;
 }
 
-#gh-assistant .gh-aip-segment {
+.gh-aiw .gh-aip-segment {
     display: flex;
     gap: 4px;
     padding: 4px;
@@ -4247,7 +4250,7 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     border-radius: var(--_small);
 }
 
-#gh-assistant .gh-aip-segment button {
+.gh-aiw .gh-aip-segment button {
     flex: 1;
     height: 28px;
     border-radius: 7px;
@@ -4257,16 +4260,16 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
     transition: background-color 160ms ease, color 160ms ease;
 }
 
-#gh-assistant .gh-aip-segment button:hover {
+.gh-aiw .gh-aip-segment button:hover {
     color: var(--_text);
 }
 
-#gh-assistant .gh-aip-segment button.gh-on {
+.gh-aiw .gh-aip-segment button.gh-on {
     background: var(--_accent);
     color: #fff;
 }
 
-#gh-assistant .gh-aip-actions {
+.gh-aiw .gh-aip-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -4274,7 +4277,358 @@ body.gh-motion-off #gh-assistant .gh-aip-dots i {
 }
 
 @media (max-width: 1100px) {
-    #gh-assistant .gh-aip-profile {
+    .gh-aiw .gh-aip-profile {
         display: none;
     }
+}
+
+/* ───── the assistant as a floating window ───── */
+
+.gh-aif {
+    position: fixed;
+    z-index: 880;
+    display: flex;
+    flex-direction: column;
+    min-width: 320px;
+    min-height: 380px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    box-sizing: border-box;
+    overflow: hidden;
+    resize: both;
+    background: var(--gh-raised, var(--_solid));
+    border: 1px solid var(--_edge);
+    border-radius: var(--gh-radius, 18px);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 32%);
+    font-size: 14.5px;
+}
+
+.gh-aif .gh-aip-head {
+    height: 46px;
+    padding: 0 8px 0 14px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.gh-aif .gh-aip-head:active {
+    cursor: grabbing;
+}
+
+.gh-aif .gh-aip-head strong {
+    font-size: 15px;
+}
+
+.gh-aif .gh-aip-chat {
+    min-height: 0;
+}
+
+.gh-aif .gh-aip-log {
+    padding-top: 16px;
+}
+
+.gh-aif .gh-aip-intro {
+    padding: 0 14px 12px;
+}
+
+.gh-aif .gh-aip-intro .gh-orb {
+    width: 56px !important;
+    height: 56px !important;
+}
+
+.gh-aif .gh-aip-intro h2 {
+    margin-top: 10px;
+    font-size: 22px;
+}
+
+.gh-aif .gh-aip-intro p {
+    font-size: 13.5px;
+}
+
+.gh-aif .gh-aip-starters button {
+    font-size: 13px;
+    padding: 6px 12px;
+}
+
+.gh-aif .gh-aip-msg {
+    gap: 10px;
+    padding: 2px 14px;
+}
+
+.gh-aif .gh-aip-gutter {
+    width: 32px;
+}
+
+.gh-aif .gh-aip-gutter .gh-orb,
+.gh-aif .gh-aip-av {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+.gh-aif .gh-aip-day {
+    margin: 12px 14px 4px;
+}
+
+.gh-aif .gh-aip-note {
+    margin: 8px 14px 0 56px;
+}
+
+.gh-aif .gh-aip-typing {
+    padding: 0 14px;
+}
+
+.gh-aif .gh-aip-input,
+.gh-aif .gh-aip-setup {
+    margin: 0 10px 14px;
+}
+
+.gh-aif .gh-aip-setup-row {
+    flex-wrap: wrap;
+}
+
+/* ───── Prism's look: decoration, badges, name, nameplate and a themed profile ───── */
+
+.gh-aiw .gh-aip-face {
+    display: inline-block;
+    vertical-align: top;
+    line-height: 0;
+}
+
+/* avatar decoration: a ring of light that turns, with three glints */
+.gh-deco {
+    position: absolute;
+    inset: -17%;
+    pointer-events: none;
+}
+
+.gh-deco::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+        hsl(var(--gh-accent-h, 325) 95% 66% / 0%) 0 5%,
+        hsl(var(--gh-accent-h, 325) 95% 66%) 19%,
+        hsl(calc(var(--gh-accent-h, 325) + 55) 95% 72%) 30%,
+        hsl(calc(var(--gh-accent-h, 325) + 55) 95% 72% / 0%) 44% 55%,
+        hsl(calc(var(--gh-accent-h, 325) - 75) 95% 70%) 69%,
+        hsl(var(--gh-accent-h, 325) 95% 72%) 80%,
+        hsl(var(--gh-accent-h, 325) 95% 72% / 0%) 94%);
+    -webkit-mask: radial-gradient(closest-side, transparent 79%, #000 82% 92%, transparent 95%);
+    mask: radial-gradient(closest-side, transparent 79%, #000 82% 92%, transparent 95%);
+}
+
+.gh-deco i {
+    position: absolute;
+    top: -3%;
+    right: 5%;
+    width: 24%;
+    height: 24%;
+    background: hsl(var(--gh-accent-h, 325) 100% 86%);
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+}
+
+.gh-deco i:nth-child(2) {
+    top: auto;
+    right: auto;
+    bottom: 0;
+    left: -3%;
+    width: 17%;
+    height: 17%;
+    background: hsl(calc(var(--gh-accent-h, 325) + 55) 100% 86%);
+}
+
+.gh-deco i:nth-child(3) {
+    top: 40%;
+    right: -9%;
+    width: 13%;
+    height: 13%;
+    background: hsl(calc(var(--gh-accent-h, 325) - 75) 100% 88%);
+}
+
+.gh-deco.gh-live::before {
+    animation: gh-deco-turn 8s linear infinite;
+}
+
+.gh-deco.gh-live i {
+    animation: gh-deco-glint 2.8s ease-in-out infinite;
+}
+
+.gh-deco.gh-live i:nth-child(2) { animation-delay: 0.9s; }
+.gh-deco.gh-live i:nth-child(3) { animation-delay: 1.7s; }
+
+@keyframes gh-deco-turn {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes gh-deco-glint {
+    0%, 100% { transform: scale(0.55) rotate(0deg); opacity: 0.45; }
+    50% { transform: scale(1) rotate(45deg); opacity: 1; }
+}
+
+/* its name: accent colours drifting through the letters */
+.gh-prism-ink {
+    background: linear-gradient(90deg,
+        hsl(var(--gh-accent-h, 325) 90% 62%),
+        hsl(calc(var(--gh-accent-h, 325) + 55) 88% 62%) 35%,
+        hsl(calc(var(--gh-accent-h, 325) - 75) 88% 66%) 70%,
+        hsl(var(--gh-accent-h, 325) 90% 62%));
+    background-size: 240% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: gh-ink 9s ease-in-out infinite alternate;
+}
+
+@keyframes gh-ink {
+    to { background-position: 100% 0; }
+}
+
+.gh-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 10px;
+}
+
+.gh-badges img {
+    width: 22px;
+    height: 22px;
+    transition: transform 160ms ease;
+}
+
+.gh-badges img:hover {
+    transform: translateY(-2px) scale(1.12);
+}
+
+.gh-aiw .gh-aip-intro .gh-badges {
+    margin: 2px 0 12px;
+}
+
+/* nameplate: its row in the DM list */
+#gh-hub .gh-ai-row {
+    background-image: linear-gradient(90deg,
+        transparent 30%,
+        hsl(calc(var(--gh-accent-h, 325) - 75) 90% 62% / 14%) 62%,
+        hsl(var(--gh-accent-h, 325) 92% 62% / 26%));
+}
+
+#gh-hub .gh-ai-row.gh-on {
+    background-image: linear-gradient(90deg, var(--_accent-soft), hsl(var(--gh-accent-h, 325) 92% 62% / 30%));
+}
+
+/* themed profile: always dark glass in the accent's colours, like a Nitro profile theme */
+.gh-aiw .gh-aip-profile {
+    --_text: #fff;
+    --_muted: rgb(255 255 255 / 72%);
+    --_edge: rgb(255 255 255 / 24%);
+    --_line: rgb(255 255 255 / 16%);
+    --_inset: rgb(255 255 255 / 10%);
+    --_hover: rgb(255 255 255 / 12%);
+    --_solid: hsl(var(--gh-accent-h, 325) 50% 15%);
+
+    color: #fff;
+    border-left: 0;
+    background: linear-gradient(172deg,
+        hsl(var(--gh-accent-h, 325) 58% 21%),
+        hsl(calc(var(--gh-accent-h, 325) + 55) 52% 13%) 52%,
+        hsl(calc(var(--gh-accent-h, 325) - 75) 56% 18%));
+}
+
+.gh-aiw .gh-aip-banner {
+    position: relative;
+    height: 140px;
+    overflow: hidden;
+    background:
+        radial-gradient(60% 120% at 10% 0%, hsl(var(--gh-accent-h, 325) 95% 62%), transparent 70%),
+        radial-gradient(60% 130% at 95% 100%, hsl(calc(var(--gh-accent-h, 325) - 75) 90% 58%), transparent 70%),
+        radial-gradient(50% 90% at 60% 10%, hsl(calc(var(--gh-accent-h, 325) + 55) 95% 62%), transparent 70%),
+        hsl(calc(var(--gh-accent-h, 325) - 30) 70% 30%);
+    background-size: 180% 180%;
+    animation: gh-aurora 14s ease-in-out infinite alternate;
+}
+
+@keyframes gh-aurora {
+    from { background-position: 0% 0%; }
+    to { background-position: 100% 100%; }
+}
+
+/* profile effect: glints rising through the banner */
+.gh-aiw .gh-aip-banner i {
+    position: absolute;
+    bottom: -14px;
+    left: 8%;
+    width: 11px;
+    height: 11px;
+    background: #fff;
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+    opacity: 0;
+    animation: gh-rise 6s linear infinite;
+}
+
+.gh-aiw .gh-aip-banner i:nth-child(2) { left: 22%; width: 7px; height: 7px; animation-delay: 1.4s; animation-duration: 7s; }
+.gh-aiw .gh-aip-banner i:nth-child(3) { left: 38%; width: 14px; height: 14px; animation-delay: 2.9s; }
+.gh-aiw .gh-aip-banner i:nth-child(4) { left: 53%; width: 8px; height: 8px; animation-delay: 0.6s; animation-duration: 5s; }
+.gh-aiw .gh-aip-banner i:nth-child(5) { left: 67%; width: 12px; height: 12px; animation-delay: 3.6s; animation-duration: 7.5s; }
+.gh-aiw .gh-aip-banner i:nth-child(6) { left: 80%; width: 6px; height: 6px; animation-delay: 2.1s; }
+.gh-aiw .gh-aip-banner i:nth-child(7) { left: 92%; width: 10px; height: 10px; animation-delay: 4.4s; animation-duration: 6.5s; }
+
+@keyframes gh-rise {
+    0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+    15% { opacity: 0.95; }
+    70% { opacity: 0.7; }
+    100% { transform: translateY(-170px) scale(1.15) rotate(120deg); opacity: 0; }
+}
+
+.gh-aiw .gh-aip-card {
+    margin: 0 12px 16px;
+    padding: 0 14px 18px;
+    border-radius: 0 0 16px 16px;
+    background: rgb(0 0 0 / 28%);
+}
+
+.gh-aiw .gh-aip-face.gh-big {
+    margin-top: -46px;
+}
+
+.gh-aiw .gh-aip-bubble {
+    align-self: flex-start;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 14px 14px 14px 4px;
+    background: rgb(255 255 255 / 13%);
+    font-size: 13.5px;
+    line-height: 1.35;
+}
+
+.gh-aiw .gh-aip-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.gh-aiw .gh-aip-roles span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: 7px;
+    background: rgb(255 255 255 / 10%);
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.gh-aiw .gh-aip-roles i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+body.gh-motion-off .gh-deco::before,
+body.gh-motion-off .gh-deco i,
+body.gh-motion-off .gh-prism-ink,
+body.gh-motion-off .gh-aiw .gh-aip-banner,
+body.gh-motion-off .gh-aiw .gh-aip-banner i {
+    animation: none;
 }

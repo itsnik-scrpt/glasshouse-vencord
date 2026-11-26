@@ -22,6 +22,8 @@ import {
     GuildRoleStore,
     GuildStore,
     IconUtils,
+    React,
+    ReactDOM,
     RestAPI,
     SelectedChannelStore,
     SelectedGuildStore,
@@ -33,7 +35,7 @@ import {
 } from "@webpack/common";
 
 import { I, Icon, safe } from "./Hub";
-import { settings } from "./settings";
+import { portalHost, settings } from "./settings";
 
 const PrivateChannelSortStore = findStoreLazy("PrivateChannelSortStore");
 
@@ -266,6 +268,50 @@ export function Orb({ size }: { size?: number; }) {
     );
 }
 
+/** Its avatar decoration: a turning ring of light with three glints. `live` animates it. */
+const Deco = ({ live }: { live?: boolean; }) => (
+    <span className={"gh-deco" + (live ? " gh-live" : "")}><i /><i /><i /></span>
+);
+
+// Discord's own badge artwork, by name. Shown on this profile only, inside your own app.
+const BADGES: [string, string][] = [
+    ["Discord Staff", "5e74e9b61934fc1f67c65515d1f7e60d"],
+    ["Partnered Server Owner", "3f9748e53446a137a052f3454e2de41e"],
+    ["Moderator Programs Alumni", "fee1624003e2fee35cb398e125dc479b"],
+    ["HypeSquad Events", "bf01d1073931f921909045f3a39fd264"],
+    ["HypeSquad Bravery", "8a88d63823d8a71cd5e390baa45efa02"],
+    ["HypeSquad Brilliance", "011940fd013da3f7fb926e4a1cd2e618"],
+    ["HypeSquad Balance", "3aa41de486fa12454c3761e8e223442e"],
+    ["Bug Hunter", "2717692c7dca7289b35297368a940dd0"],
+    ["Gold Bug Hunter", "848f79194d4be5ff5f81505cbd0ce1e6"],
+    ["Active Developer", "6bdc42827a38498929a4920da12695d9"],
+    ["Early Verified Bot Developer", "6df5892e0f35b051f8b61eace34f4967"],
+    ["Early Supporter", "7060786766c9c840eb3019e725d2b358"],
+    ["Nitro Opal", "5b154df19c53dce2af92c9b61e6be5e2"],
+    ["Server Booster", "ec92202290b48d0879b7413d2dde3bab"],
+    ["Completed a Quest", "7d9ae358c8c5e118768335dbe68b4fb8"],
+    ["Originally known as", "6de6d34650760ba5551a79732e98ed60"],
+    ["Orbs", "83d8a1eb09a8d64e59233eec5d4d5c2d"]
+];
+
+function Badges() {
+    return (
+        <div className="gh-badges">
+            {BADGES.map(([label, hash]) => (
+                <img key={hash} src={`https://cdn.discordapp.com/badge-icons/${hash}.png`} alt={label} draggable={false}
+                    onError={e => { e.currentTarget.style.display = "none"; }} />
+            ))}
+        </div>
+    );
+}
+
+const ROLES: [string, string][] = [
+    ["Assistant", "hsl(var(--gh-accent-h, 325) 92% 66%)"],
+    ["Yours only", "hsl(calc(var(--gh-accent-h, 325) + 55) 90% 66%)"],
+    ["Read-only", "hsl(calc(var(--gh-accent-h, 325) - 75) 90% 70%)"],
+    ["Never sleeps", "#3ddc84"]
+];
+
 /* ───────────── state: one conversation, kept between restarts ───────────── */
 
 const SAVE_KEY = "Glasshouse_assistant";
@@ -278,6 +324,12 @@ let loaded = false;
 let open = false;
 let openedPath = "";
 
+// The floating window: where it is, how big, and which of the two views was used last.
+const WINDOW_KEY = "Glasshouse_assistantWindow";
+let floating = false;
+const win = { x: -1, y: -1, w: 400, h: 560, mode: "page" as "page" | "float" };
+const saveWindow = () => void DataStore.set(WINDOW_KEY, win);
+
 const listeners = new Set<() => void>();
 const changed = () => listeners.forEach(fn => fn());
 
@@ -286,7 +338,31 @@ export function setAssistantOpen(next: boolean) {
     if (open === next) return;
     open = next;
     openedPath = location.pathname;
+    if (next) {
+        floating = false;
+        if (win.mode !== "page") { win.mode = "page"; saveWindow(); }
+    }
     changed();
+}
+export const isAssistantFloating = () => floating;
+export function setAssistantFloating(next: boolean) {
+    if (floating === next) return;
+    floating = next;
+    if (next) {
+        open = false;
+        win.mode = "float";
+        saveWindow();
+    }
+    changed();
+}
+/** The hub button and Ctrl+Alt+A: close whichever view is open, or open the one used last. */
+export function toggleAssistant() {
+    if (open || floating) {
+        open = false;
+        floating = false;
+        changed();
+    } else if (win.mode === "float") setAssistantFloating(true);
+    else setAssistantOpen(true);
 }
 /** Going anywhere else in Discord leaves the assistant's chat. */
 export function assistantPathCheck() {
@@ -300,6 +376,8 @@ export function onAssistantChange(fn: () => void) {
 async function load() {
     if (loaded) return;
     loaded = true;
+    const place: any = await DataStore.get(WINDOW_KEY).catch(() => null);
+    if (place && typeof place === "object") Object.assign(win, place);
     const saved: any = await DataStore.get(SAVE_KEY).catch(() => null);
     if (saved?.shown?.length && !shown.length) {
         shown.push(...saved.shown);
@@ -415,9 +493,10 @@ export function AssistantRow() {
         <button className={"gh-channel gh-dm gh-ai-row" + (isOpen ? " gh-on" : "")} onClick={() => setAssistantOpen(true)}>
             <span className="gh-avatar">
                 <Orb />
+                <Deco />
                 <i className="gh-status gh-online" />
             </span>
-            <span className="gh-channel-name">{assistantName()}</span>
+            <span className="gh-channel-name"><span className="gh-prism-ink">{assistantName()}</span></span>
             <span className="gh-ai-tag">AI</span>
         </button>
     );
@@ -453,21 +532,19 @@ const STARTERS = [
 const clock = (at: number) => new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const day = (at: number) => new Date(at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" });
 
-export function AssistantPage() {
-    const s = settings.use(["assistantKey", "assistantModel", "assistantName", "assistantAvatar"]);
+/** The conversation itself: messages, the typing line and the message box. Shared by the page and the floating window. */
+function ChatPane() {
+    const s = settings.use(["assistantKey", "assistantName", "assistantAvatar"]);
     useAssistant();
     const [text, setText] = useState("");
     const [keyDraft, setKeyDraft] = useState("");
-    const [profile, setProfile] = useState(true);
     const end = useRef<HTMLDivElement>(null);
     useEffect(() => { end.current?.scrollIntoView({ block: "end" }); });
 
     const name = assistantName();
-    const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, "") || "prism";
     const me: any = UserStore.getCurrentUser();
     const myAvatar = safe(() => IconUtils.getUserAvatarURL(me, false, 80), "");
     const hasKey = !!s.assistantKey.trim();
-    const view: any = ChannelStore.getChannel(SelectedChannelStore.getChannelId() as string);
 
     const ask = (question: string) => {
         const q = question.trim();
@@ -480,6 +557,91 @@ export function AssistantPage() {
         settings.store.assistantKey = keyDraft.trim();
         setKeyDraft("");
     };
+
+    return (
+        <section className="gh-aip-chat">
+            <div className="gh-aip-log">
+                <div className="gh-aip-intro">
+                    <span className="gh-aip-face"><Orb size={80} /><Deco live /></span>
+                    <h2><span className="gh-prism-ink">{name}</span></h2>
+                    <Badges />
+                    <p>This is the start of your chat with <b>{name}</b>. It lives inside your Discord app, so nobody else can see it or message it. It can read your servers, channels and DMs to help you, and it cannot send or change anything.</p>
+                    {hasKey && !shown.length && (
+                        <div className="gh-aip-starters">
+                            {STARTERS.map(q => <button key={q} onClick={() => ask(q)}>{q}</button>)}
+                        </div>
+                    )}
+                </div>
+
+                {shown.map((m, i) => {
+                    const previous = shown[i - 1];
+                    const newDay = !previous || day(previous.at) !== day(m.at);
+                    const divider = newDay && <div key={"d" + i} className="gh-aip-day"><span>{day(m.at)}</span></div>;
+                    if (m.role === "note") return [divider, <div key={i} className="gh-aip-note">{m.text}</div>];
+                    const mine = m.role === "user";
+                    const head = newDay || previous.role !== m.role || m.at - previous.at > 7 * 60_000;
+                    return [divider, (
+                        <div key={i} className={"gh-aip-msg" + (head ? " gh-head" : "")}>
+                            <span className="gh-aip-gutter">
+                                {head ? (mine ? <img className="gh-aip-av" src={myAvatar} alt="" draggable={false} /> : <span className="gh-aip-face"><Orb size={40} /><Deco /></span>) : <time>{clock(m.at)}</time>}
+                            </span>
+                            <div className="gh-aip-content">
+                                {head && (
+                                    <div className="gh-aip-meta">
+                                        <strong className={mine ? "" : "gh-aip-name gh-prism-ink"}>{mine ? userName(me) : name}</strong>
+                                        {!mine && <span className="gh-ai-tag">AI</span>}
+                                        <time>{clock(m.at)}</time>
+                                    </div>
+                                )}
+                                <div className="gh-aip-text">{mine ? <p>{m.text}</p> : rich(m.text)}</div>
+                            </div>
+                        </div>
+                    )];
+                })}
+                <div ref={end} />
+            </div>
+
+            <div className="gh-aip-typing">
+                {busy && <><span className="gh-aip-dots"><i /><i /><i /></span><span><b>{name}</b> {status}…</span></>}
+            </div>
+
+            {hasKey ? (
+                <div className="gh-aip-input">
+                    <textarea autoFocus rows={1} value={text} placeholder={`Message @${name}`} spellCheck={false}
+                        onChange={e => setText(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(text); }
+                        }} />
+                    {busy
+                        ? <button className="gh-aip-btn gh-on" aria-label="Stop" onClick={() => { stopped = true; status = "is stopping"; changed(); }}><Icon d={I.x} size={18} /></button>
+                        : <button className="gh-aip-btn gh-on" aria-label="Send" disabled={!text.trim()} onClick={() => ask(text)}><Icon d={I.send} size={18} /></button>}
+                </div>
+            ) : (
+                <div className="gh-aip-setup">
+                    <strong>Wake {name} up</strong>
+                    <p>{name} runs on Claude with your own Anthropic API key. Create one at console.anthropic.com and paste it here. Usage is billed to that key.</p>
+                    <div className="gh-aip-setup-row">
+                        <input type="password" autoFocus value={keyDraft} onChange={e => setKeyDraft(e.target.value)}
+                            onKeyDown={e => e.key === "Enter" && saveKey()} placeholder="API key" spellCheck={false} autoComplete="off" />
+                        <button className="gh-aip-pill gh-on" disabled={!keyDraft.trim()} onClick={saveKey}>Save key</button>
+                    </div>
+                    <small>The key is kept in Vencord's settings file on this computer. What {name} reads to answer a question is sent to Anthropic.</small>
+                </div>
+            )}
+        </section>
+    );
+}
+
+export function AssistantPage() {
+    const s = settings.use(["assistantKey", "assistantModel", "assistantName", "assistantAvatar"]);
+    useAssistant();
+    const [profile, setProfile] = useState(true);
+
+    const name = assistantName();
+    const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, "") || "prism";
+    const hasKey = !!s.assistantKey.trim();
+    const view: any = ChannelStore.getChannel(SelectedChannelStore.getChannelId() as string);
+
     const confirmClear = () => Alerts.show({
         title: `Clear your chat with ${name}?`,
         body: "The whole conversation is deleted from this computer. This cannot be undone.",
@@ -495,88 +657,28 @@ export function AssistantPage() {
                 <strong>{name}</strong>
                 <span className="gh-ai-tag">AI</span>
                 <small>Only you can see this chat</small>
+                <button className="gh-aip-btn" aria-label="Open as a floating window" onClick={() => setAssistantFloating(true)}><Icon d={I.float} size={18} /></button>
                 <button className={"gh-aip-btn" + (profile ? " gh-on" : "")} aria-label="Profile" onClick={() => setProfile(v => !v)}><Icon d={I.users} size={18} /></button>
                 <button className="gh-aip-btn" aria-label="Close" onClick={() => setAssistantOpen(false)}><Icon d={I.x} size={18} /></button>
             </header>
 
             <div className="gh-aip-body">
-                <section className="gh-aip-chat">
-                    <div className="gh-aip-log">
-                        <div className="gh-aip-intro">
-                            <Orb size={80} />
-                            <h2>{name}</h2>
-                            <p>This is the start of your chat with <b>{name}</b>. It lives inside your Discord app, so nobody else can see it or message it. It can read your servers, channels and DMs to help you, and it cannot send or change anything.</p>
-                            {hasKey && !shown.length && (
-                                <div className="gh-aip-starters">
-                                    {STARTERS.map(q => <button key={q} onClick={() => ask(q)}>{q}</button>)}
-                                </div>
-                            )}
-                        </div>
-
-                        {shown.map((m, i) => {
-                            const previous = shown[i - 1];
-                            const newDay = !previous || day(previous.at) !== day(m.at);
-                            const divider = newDay && <div key={"d" + i} className="gh-aip-day"><span>{day(m.at)}</span></div>;
-                            if (m.role === "note") return [divider, <div key={i} className="gh-aip-note">{m.text}</div>];
-                            const mine = m.role === "user";
-                            const head = newDay || previous.role !== m.role || m.at - previous.at > 7 * 60_000;
-                            return [divider, (
-                                <div key={i} className={"gh-aip-msg" + (head ? " gh-head" : "")}>
-                                    <span className="gh-aip-gutter">
-                                        {head ? (mine ? <img className="gh-aip-av" src={myAvatar} alt="" draggable={false} /> : <Orb size={40} />) : <time>{clock(m.at)}</time>}
-                                    </span>
-                                    <div className="gh-aip-content">
-                                        {head && (
-                                            <div className="gh-aip-meta">
-                                                <strong className={mine ? "" : "gh-aip-name"}>{mine ? userName(me) : name}</strong>
-                                                {!mine && <span className="gh-ai-tag">AI</span>}
-                                                <time>{clock(m.at)}</time>
-                                            </div>
-                                        )}
-                                        <div className="gh-aip-text">{mine ? <p>{m.text}</p> : rich(m.text)}</div>
-                                    </div>
-                                </div>
-                            )];
-                        })}
-                        <div ref={end} />
-                    </div>
-
-                    <div className="gh-aip-typing">
-                        {busy && <><span className="gh-aip-dots"><i /><i /><i /></span><span><b>{name}</b> {status}…</span></>}
-                    </div>
-
-                    {hasKey ? (
-                        <div className="gh-aip-input">
-                            <textarea autoFocus rows={1} value={text} placeholder={`Message @${name}`} spellCheck={false}
-                                onChange={e => setText(e.target.value)}
-                                onKeyDown={e => {
-                                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(text); }
-                                }} />
-                            {busy
-                                ? <button className="gh-aip-btn gh-on" aria-label="Stop" onClick={() => { stopped = true; status = "is stopping"; changed(); }}><Icon d={I.x} size={18} /></button>
-                                : <button className="gh-aip-btn gh-on" aria-label="Send" disabled={!text.trim()} onClick={() => ask(text)}><Icon d={I.send} size={18} /></button>}
-                        </div>
-                    ) : (
-                        <div className="gh-aip-setup">
-                            <strong>Wake {name} up</strong>
-                            <p>{name} runs on Claude with your own Anthropic API key. Create one at console.anthropic.com and paste it here. Usage is billed to that key.</p>
-                            <div className="gh-aip-setup-row">
-                                <input type="password" autoFocus value={keyDraft} onChange={e => setKeyDraft(e.target.value)}
-                                    onKeyDown={e => e.key === "Enter" && saveKey()} placeholder="API key" spellCheck={false} autoComplete="off" />
-                                <button className="gh-aip-pill gh-on" disabled={!keyDraft.trim()} onClick={saveKey}>Save key</button>
-                            </div>
-                            <small>The key is kept in Vencord's settings file on this computer. What {name} reads to answer a question is sent to Anthropic.</small>
-                        </div>
-                    )}
-                </section>
+                <ChatPane />
 
                 {profile && (
                     <aside className="gh-aip-profile">
-                        <div className="gh-aip-banner" />
+                        <div className="gh-aip-banner"><i /><i /><i /><i /><i /><i /><i /></div>
                         <div className="gh-aip-card">
-                            <span className="gh-aip-face gh-big"><Orb size={84} /><i className="gh-status gh-online" /></span>
-                            <h3>{name} <span className="gh-ai-tag">AI</span></h3>
+                            <span className="gh-aip-face gh-big"><Orb size={84} /><Deco live /><i className="gh-status gh-online" /></span>
+                            <h3><span className="gh-prism-ink">{name}</span> <span className="gh-ai-tag">AI</span></h3>
                             <small>@{handle} · built into Glasshouse</small>
+                            <div className="gh-aip-bubble">Reading the room so you don't have to</div>
+                            <Badges />
+
+                            <h4>Roles</h4>
+                            <div className="gh-aip-roles">
+                                {ROLES.map(([label, color]) => <span key={label}><i style={{ background: color }} />{label}</span>)}
+                            </div>
 
                             <h4>About me</h4>
                             <p>I live in your Discord app, not on Discord's servers, so I am yours alone. Ask me to catch you up, find where something was said, explain a server or draft a reply.</p>
@@ -622,5 +724,91 @@ export function AssistantPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+/* ───────────── the floating window ───────────── */
+
+const MIN_W = 320, MIN_H = 380;
+
+/** Keep the window fully on screen, whatever was saved and however Discord was resized. */
+function fit() {
+    const maxW = window.innerWidth - 16, maxH = window.innerHeight - 16;
+    const w = Math.max(MIN_W, Math.min(win.w, maxW));
+    const h = Math.max(MIN_H, Math.min(win.h, maxH));
+    // First time: bottom right, clear of the message box.
+    const x = win.x < 0 ? window.innerWidth - w - 24 : win.x;
+    const y = win.y < 0 ? window.innerHeight - h - 96 : win.y;
+    return {
+        w, h,
+        x: Math.max(8, Math.min(x, window.innerWidth - w - 8)),
+        y: Math.max(8, Math.min(y, window.innerHeight - h - 8))
+    };
+}
+
+/** Prism as a small window that floats over Discord. Drag it by its top bar; resize it from the corner. */
+export function AssistantFloat() {
+    settings.use(["assistantName", "assistantAvatar"]);
+    useAssistant();
+    const [, repaint] = useState(0);
+    const box = useRef<HTMLDivElement>(null);
+    const drag = useRef<{ dx: number; dy: number; } | null>(null);
+
+    useEffect(() => {
+        const onResize = () => repaint(n => n + 1);
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, []);
+
+    const at = fit();
+
+    const onDown = (e: React.PointerEvent<HTMLElement>) => {
+        if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
+        drag.current = { dx: e.clientX - at.x, dy: e.clientY - at.y };
+        e.currentTarget.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    };
+    const onMove = (e: React.PointerEvent<HTMLElement>) => {
+        if (!drag.current) return;
+        win.x = e.clientX - drag.current.dx;
+        win.y = e.clientY - drag.current.dy;
+        const next = fit();
+        win.x = next.x;
+        win.y = next.y;
+        // Moved directly, not through React, so dragging stays smooth.
+        if (box.current) { box.current.style.left = next.x + "px"; box.current.style.top = next.y + "px"; }
+    };
+    const onUp = () => {
+        if (!drag.current) return;
+        drag.current = null;
+        saveWindow();
+        repaint(n => n + 1);
+    };
+    // The corner grip is the browser's own; this picks up the size it leaves.
+    const onSized = () => {
+        const el = box.current;
+        if (!el || drag.current) return;
+        if (el.offsetWidth === win.w && el.offsetHeight === win.h) return;
+        win.w = el.offsetWidth;
+        win.h = el.offsetHeight;
+        win.x = at.x;
+        win.y = at.y;
+        saveWindow();
+        repaint(n => n + 1);
+    };
+
+    return ReactDOM.createPortal(
+        <div ref={box} className="gh-aiw gh-aif" style={{ left: at.x, top: at.y, width: at.w, height: at.h }} onPointerUp={onSized}>
+            <header className="gh-aip-head" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+                <span className="gh-aip-face"><Orb size={26} /><i className="gh-status gh-online" /></span>
+                <strong>{assistantName()}</strong>
+                <span className="gh-ai-tag">AI</span>
+                <small />
+                <button className="gh-aip-btn" aria-label="Open as a full chat" onClick={() => setAssistantOpen(true)}><Icon d={I.expand} size={17} /></button>
+                <button className="gh-aip-btn" aria-label="Close" onClick={() => setAssistantFloating(false)}><Icon d={I.x} size={17} /></button>
+            </header>
+            <ChatPane />
+        </div>,
+        portalHost()
     );
 }
