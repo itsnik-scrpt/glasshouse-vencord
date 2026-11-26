@@ -4632,3 +4632,18 @@ body.gh-motion-off .gh-aiw .gh-aip-banner,
 body.gh-motion-off .gh-aiw .gh-aip-banner i {
     animation: none;
 }
+
+/* The avatar's wrapper must stay the avatar's size. In the message gutter it used to
+   stretch to the full height of the message, which drew the decoration as tall streaks. */
+.gh-aiw .gh-aip-gutter {
+    align-items: flex-start;
+}
+
+.gh-aiw .gh-aip-gutter .gh-aip-face {
+    flex: none;
+    align-self: flex-start;
+}
+
+.gh-deco {
+    aspect-ratio: 1;
+}
