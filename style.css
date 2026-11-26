@@ -4647,3 +4647,181 @@ body.gh-motion-off .gh-aiw .gh-aip-banner i {
 .gh-deco {
     aspect-ratio: 1;
 }
+
+/* ───── assistant chat: profiles, message actions, editing, pictures, emoji ───── */
+
+.gh-aiw button.gh-aip-face {
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.gh-aiw .gh-aip-who {
+    padding: 0;
+}
+
+.gh-aiw .gh-aip-who:hover strong {
+    text-decoration: underline;
+    text-decoration-color: var(--_muted);
+}
+
+.gh-aiw .gh-aip-msg {
+    position: relative;
+}
+
+.gh-aiw .gh-aip-msg.gh-editing {
+    background: var(--_hover);
+}
+
+.gh-aiw .gh-aip-tools {
+    position: absolute;
+    top: -14px;
+    right: 16px;
+    display: none;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--_edge);
+    border-radius: 10px;
+    background: var(--gh-raised, var(--_solid));
+}
+
+.gh-aiw .gh-aip-msg:hover .gh-aip-tools {
+    display: flex;
+}
+
+.gh-aiw .gh-aip-tools .gh-aip-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+}
+
+.gh-aiw .gh-aip-btn.gh-danger:hover {
+    color: var(--status-danger, #e5484d);
+}
+
+.gh-aiw .gh-aip-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 2px 0 4px;
+}
+
+.gh-aiw .gh-aip-edit textarea {
+    min-height: 40px;
+    max-height: 220px;
+    padding: 9px 12px;
+    box-sizing: border-box;
+    border: 1px solid var(--_accent);
+    border-radius: 10px;
+    outline: 0;
+    resize: none;
+    field-sizing: content;
+    background: var(--_inset);
+    color: var(--_text);
+    font: inherit;
+    line-height: 1.4;
+}
+
+.gh-aiw .gh-aip-edit small {
+    color: var(--_muted);
+    font-size: 12px;
+}
+
+.gh-aiw .gh-aip-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0;
+}
+
+.gh-aiw .gh-aip-images img {
+    max-width: min(320px, 100%);
+    max-height: 260px;
+    border-radius: 10px;
+    display: block;
+}
+
+.gh-aiw .gh-aip-composer {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    margin: 0 16px 20px;
+    border: 1px solid var(--_edge);
+    border-radius: 14px;
+    background: var(--_inset);
+    transition: border-color 160ms ease;
+}
+
+.gh-aiw .gh-aip-composer:focus-within {
+    border-color: var(--_accent);
+}
+
+.gh-aiw .gh-aip-composer .gh-aip-input {
+    margin: 0;
+    padding: 6px;
+    border: 0;
+    background: none;
+}
+
+.gh-aiw .gh-aip-pending {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 10px 4px;
+}
+
+.gh-aiw .gh-aip-pending span {
+    position: relative;
+    display: block;
+}
+
+.gh-aiw .gh-aip-pending img {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+}
+
+.gh-aiw .gh-aip-pending button {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--gh-raised, var(--_solid));
+    border: 1px solid var(--_edge);
+    color: var(--_text);
+}
+
+.gh-aiw .gh-aip-emoji {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+    gap: 2px;
+    max-height: 150px;
+    overflow: hidden auto;
+    padding: 8px 8px 4px;
+    border-bottom: 1px solid var(--_line);
+}
+
+.gh-aiw .gh-aip-emoji button {
+    height: 34px;
+    border-radius: 8px;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.gh-aiw .gh-aip-emoji button:hover {
+    background: var(--_hover);
+}
+
+.gh-aif .gh-aip-composer {
+    margin: 0 10px 14px;
+}
+
+.gh-aif .gh-aip-tools {
+    right: 10px;
+}

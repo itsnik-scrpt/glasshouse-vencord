@@ -3,6 +3,7 @@
  * look at your Discord to help you with it. It exists only in this app; it is not a
  * Discord account or a bot, and nobody else can see it.
  *
+ * You can attach pictures for it to look at, and edit, delete or re-ask your messages.
  * It can read (servers, channels, DMs, messages, search) but has no way to send,
  * edit or delete anything. Requests go to the Anthropic API with your own key, sent
  * from Discord's main process by native.ts. Only what the assistant chooses to read
@@ -10,7 +11,7 @@
  */
 
 import * as DataStore from "@api/DataStore";
-import { copyWithToast } from "@utils/discord";
+import { copyWithToast, openUserProfile } from "@utils/discord";
 import { PluginNative } from "@utils/types";
 import { findStoreLazy } from "@webpack";
 import {
@@ -27,6 +28,7 @@ import {
     RestAPI,
     SelectedChannelStore,
     SelectedGuildStore,
+    showToast,
     SortedGuildStore,
     useEffect,
     useRef,
@@ -252,7 +254,7 @@ function explain(status: number, data: string): string {
     return detail || `The request failed (${status}).`;
 }
 
-interface Shown { role: "user" | "assistant" | "note"; text: string; at: number; }
+interface Shown { role: "user" | "assistant" | "note"; text: string; at: number; turn?: number; images?: string[]; }
 
 /* ───────────── who the assistant is ───────────── */
 
@@ -390,7 +392,7 @@ function save() {
     // Keep the history a sensible size, cutting only where a question of yours starts.
     if (thread.length > 60) {
         let cut = thread.length - 60;
-        while (cut < thread.length && !(thread[cut].role === "user" && typeof thread[cut].content === "string")) cut++;
+        while (cut < thread.length && !(thread[cut].start || (thread[cut].role === "user" && typeof thread[cut].content === "string"))) cut++;
         thread.splice(0, cut);
     }
     if (shown.length > 200) shown.splice(0, shown.length - 200);
@@ -414,17 +416,27 @@ export function useAssistant() {
     return open;
 }
 
-async function send(text: string) {
+/** A pasted or attached picture (kept as a data: link) in the form the API takes. */
+function imageBlock(url: string) {
+    const m = /^data:(image\/[a-z+]+);base64,(.+)$/.exec(url);
+    return m ? { type: "image", source: { type: "base64", media_type: m[1], data: m[2] } } : null;
+}
+
+async function send(text: string, images: string[] = []) {
     if (busy) return;
     const key = settings.store.assistantKey.trim();
     const native = VencordNative.pluginHelpers.Glasshouse as PluginNative<typeof import("./native")>;
     const rollback = thread.length;
-    const note = (message: string) => shown.push({ role: "note", text: message, at: Date.now() });
+    // Everything one question produces carries the same number, so it can be edited or deleted as a unit.
+    const turn = Date.now();
+    const note = (message: string) => shown.push({ role: "note", text: message, at: Date.now(), turn });
     busy = true;
     stopped = false;
     status = "is thinking";
-    shown.push({ role: "user", text, at: Date.now() });
-    thread.push({ role: "user", content: `${viewNote()}\n\n${text}` });
+    shown.push({ role: "user", text, at: Date.now(), turn, ...(images.length ? { images } : {}) });
+    const prompt = `${viewNote()}\n\n${text || "(No text. See the attached picture.)"}`;
+    const pictures = images.map(imageBlock).filter(Boolean);
+    thread.push({ role: "user", content: pictures.length ? [...pictures, { type: "text", text: prompt }] : prompt, turn, start: true });
     changed();
 
     try {
@@ -436,16 +448,16 @@ async function send(text: string) {
                 cache_control: { type: "ephemeral" },
                 system: systemPrompt(),
                 tools: TOOLS,
-                messages: thread
+                messages: thread.map(m => ({ role: m.role, content: m.content }))
             }));
             if (stopped) throw new Error("Stopped.");
             if (code !== 200) throw new Error(explain(code, data));
             const reply = JSON.parse(data);
-            thread.push({ role: "assistant", content: reply.content });
+            thread.push({ role: "assistant", content: reply.content, turn });
 
             const said = (reply.content as any[]).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
             if (reply.stop_reason !== "tool_use") {
-                if (said) shown.push({ role: "assistant", text: said, at: Date.now() });
+                if (said) shown.push({ role: "assistant", text: said, at: Date.now(), turn });
                 if (reply.stop_reason === "refusal") note("It declined to answer that.");
                 else if (reply.stop_reason === "max_tokens") note("The answer was cut off for length. Ask it to continue.");
                 else if (!said) note("No answer came back. Try asking again.");
@@ -467,7 +479,7 @@ async function send(text: string) {
                 }
                 results.push({ type: "tool_result", tool_use_id: block.id, content, ...(failed ? { is_error: true } : {}) });
             }
-            thread.push({ role: "user", content: results });
+            thread.push({ role: "user", content: results, turn });
             if (stopped) throw new Error("Stopped.");
             if (round + 1 >= MAX_ROUNDS) throw new Error("That took too many steps, so it was stopped. Try a narrower question.");
             status = "is thinking";
@@ -482,6 +494,31 @@ async function send(text: string) {
     status = "";
     save();
     changed();
+}
+
+/** Delete one question together with its answer. */
+function removeTurn(turn: number) {
+    for (const list of [thread, shown] as any[][]) {
+        for (let i = list.length - 1; i >= 0; i--) if (list[i].turn === turn) list.splice(i, 1);
+    }
+    save();
+    changed();
+}
+
+/** Forget a question and everything after it; used before asking it again. */
+function rewindTo(turn: number) {
+    for (const list of [thread, shown] as any[][]) {
+        const at = list.findIndex(m => (m.turn ?? 0) >= turn);
+        if (at >= 0) list.length = at;
+    }
+}
+
+/** Ask a question again, optionally reworded. Everything after it is replaced by the new answer. */
+function resend(turn: number, text?: string) {
+    const original = shown.find(m => m.turn === turn && m.role === "user");
+    if (!original || busy) return;
+    rewindTo(turn);
+    void send(text ?? original.text, original.images ?? []);
 }
 
 /* ───────────── its entry in the DM list ───────────── */
@@ -532,25 +569,49 @@ const STARTERS = [
 const clock = (at: number) => new Date(at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 const day = (at: number) => new Date(at).toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" });
 
+const EMOJI = [..."😀😄😂🤣😊😉😍😘😎🤔😅😭😢😡🥺😴🙄😳🤯🥳😇🤝👍👎👏🙏💪👀🔥✨💯❤️💔🎉🎮🎵📌✅❌⚠️❓💡🕐🚀🌙☀️🍕☕"]
+    .filter(ch => ch !== "️");
+const IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BYTES = 4.5 * 1024 * 1024;
+
+const readPicture = (file: File) => new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+});
+
 /** The conversation itself: messages, the typing line and the message box. Shared by the page and the floating window. */
-function ChatPane() {
+function ChatPane({ onProfile }: { onProfile?(): void; }) {
     const s = settings.use(["assistantKey", "assistantName", "assistantAvatar"]);
     useAssistant();
     const [text, setText] = useState("");
     const [keyDraft, setKeyDraft] = useState("");
+    const [pictures, setPictures] = useState<string[]>([]);
+    const [emoji, setEmoji] = useState(false);
+    const [editing, setEditing] = useState<number | null>(null);
+    const [editText, setEditText] = useState("");
     const end = useRef<HTMLDivElement>(null);
-    useEffect(() => { end.current?.scrollIntoView({ block: "end" }); });
+    const box = useRef<HTMLTextAreaElement>(null);
+    const picker = useRef<HTMLInputElement>(null);
+    const count = shown.length;
+    // Follow the conversation as it grows, but do not jump while you are editing something further up.
+    useEffect(() => { if (editing === null) end.current?.scrollIntoView({ block: "end" }); }, [count, busy]);
 
     const name = assistantName();
     const me: any = UserStore.getCurrentUser();
     const myAvatar = safe(() => IconUtils.getUserAvatarURL(me, false, 80), "");
     const hasKey = !!s.assistantKey.trim();
 
-    const ask = (question: string) => {
-        const q = question.trim();
-        if (!q || busy) return;
+    const ask = () => {
+        const q = text.trim();
+        if ((!q && !pictures.length) || busy) return;
         setText("");
-        void send(q);
+        setEmoji(false);
+        const sending = pictures;
+        setPictures([]);
+        void send(q, sending);
     };
     const saveKey = () => {
         if (!keyDraft.trim()) return;
@@ -558,17 +619,56 @@ function ChatPane() {
         setKeyDraft("");
     };
 
+    const addPictures = async (files: File[]) => {
+        const next = [...pictures];
+        for (const file of files) {
+            if (!IMAGE_TYPES.includes(file.type)) { showToast({ text: `${file.name || "That file"} is not a picture ${name} can read (PNG, JPEG, GIF or WebP).`, variant: "critical" }); continue; }
+            if (file.size > MAX_IMAGE_BYTES) { showToast({ text: `${file.name || "That picture"} is larger than 4.5 MB.`, variant: "critical" }); continue; }
+            if (next.length >= MAX_IMAGES) { showToast({ text: `Up to ${MAX_IMAGES} pictures per message.`, variant: "critical" }); break; }
+            try { next.push(await readPicture(file)); } catch { /* unreadable file: skipped */ }
+        }
+        setPictures(next);
+    };
+
+    const insert = (ch: string) => {
+        const el = box.current;
+        const at = el?.selectionStart ?? text.length;
+        const to = el?.selectionEnd ?? at;
+        setText(text.slice(0, at) + ch + text.slice(to));
+        requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(at + ch.length, at + ch.length); });
+    };
+
+    const confirmDelete = (turn: number) => Alerts.show({
+        title: "Delete this message?",
+        body: `Your message and ${name}'s answer to it are deleted from this computer. This cannot be undone.`,
+        confirmText: "Delete",
+        cancelText: "Cancel",
+        onConfirm: () => removeTurn(turn)
+    } as any);
+
+    const saveEdit = (turn: number) => {
+        const next = editText.trim();
+        setEditing(null);
+        if (next) resend(turn, next);
+    };
+
     return (
-        <section className="gh-aip-chat">
+        <section className="gh-aip-chat"
+            onDragOver={e => { if (hasKey && e.dataTransfer.types.includes("Files")) e.preventDefault(); }}
+            onDrop={e => {
+                if (!hasKey || !e.dataTransfer.files.length) return;
+                e.preventDefault();
+                void addPictures(Array.from(e.dataTransfer.files));
+            }}>
             <div className="gh-aip-log">
                 <div className="gh-aip-intro">
-                    <span className="gh-aip-face"><Orb size={80} /><Deco live /></span>
+                    <button className="gh-aip-face" aria-label={`${name}'s profile`} onClick={onProfile}><Orb size={80} /><Deco live /></button>
                     <h2><span className="gh-prism-ink">{name}</span></h2>
                     <Badges />
                     <p>This is the start of your chat with <b>{name}</b>. It lives inside your Discord app, so nobody else can see it or message it. It can read your servers, channels and DMs to help you, and it cannot send or change anything.</p>
                     {hasKey && !shown.length && (
                         <div className="gh-aip-starters">
-                            {STARTERS.map(q => <button key={q} onClick={() => ask(q)}>{q}</button>)}
+                            {STARTERS.map(q => <button key={q} onClick={() => { if (!busy) void send(q); }}>{q}</button>)}
                         </div>
                     )}
                 </div>
@@ -580,21 +680,55 @@ function ChatPane() {
                     if (m.role === "note") return [divider, <div key={i} className="gh-aip-note">{m.text}</div>];
                     const mine = m.role === "user";
                     const head = newDay || previous.role !== m.role || m.at - previous.at > 7 * 60_000;
+                    const open = mine ? () => openUserProfile(me.id) : onProfile;
+                    const { turn } = m;
                     return [divider, (
-                        <div key={i} className={"gh-aip-msg" + (head ? " gh-head" : "")}>
+                        <div key={i} className={"gh-aip-msg" + (head ? " gh-head" : "") + (editing === i ? " gh-editing" : "")}>
                             <span className="gh-aip-gutter">
-                                {head ? (mine ? <img className="gh-aip-av" src={myAvatar} alt="" draggable={false} /> : <span className="gh-aip-face"><Orb size={40} /><Deco /></span>) : <time>{clock(m.at)}</time>}
+                                {head
+                                    ? <button className="gh-aip-face" aria-label={mine ? "Your profile" : `${name}'s profile`} onClick={open}>
+                                        {mine ? <img className="gh-aip-av" src={myAvatar} alt="" draggable={false} /> : <><Orb size={40} /><Deco /></>}
+                                    </button>
+                                    : <time>{clock(m.at)}</time>}
                             </span>
                             <div className="gh-aip-content">
                                 {head && (
                                     <div className="gh-aip-meta">
-                                        <strong className={mine ? "" : "gh-aip-name gh-prism-ink"}>{mine ? userName(me) : name}</strong>
+                                        <button className="gh-aip-who" onClick={open}>
+                                            <strong className={mine ? "" : "gh-aip-name gh-prism-ink"}>{mine ? userName(me) : name}</strong>
+                                        </button>
                                         {!mine && <span className="gh-ai-tag">AI</span>}
                                         <time>{clock(m.at)}</time>
                                     </div>
                                 )}
-                                <div className="gh-aip-text">{mine ? <p>{m.text}</p> : rich(m.text)}</div>
+                                {m.images && (
+                                    <div className="gh-aip-images">
+                                        {m.images.map((url, n) => <img key={n} src={url} alt="Attached picture" draggable={false} />)}
+                                    </div>
+                                )}
+                                {editing === i && turn !== undefined ? (
+                                    <div className="gh-aip-edit">
+                                        <textarea autoFocus value={editText} spellCheck={false}
+                                            onChange={e => setEditText(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === "Escape") setEditing(null);
+                                                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(turn); }
+                                            }} />
+                                        <small>Enter to save and ask again, Escape to cancel. Later messages are replaced by the new answer.</small>
+                                    </div>
+                                ) : (
+                                    <div className="gh-aip-text">{mine ? (m.text ? <p>{m.text}</p> : null) : rich(m.text)}</div>
+                                )}
                             </div>
+                            {turn !== undefined && editing !== i && (
+                                <div className="gh-aip-tools">
+                                    <button className="gh-aip-btn" aria-label="Copy text" onClick={() => copyWithToast(m.text)}><Icon d={I.copy} size={15} /></button>
+                                    {mine
+                                        ? <button className="gh-aip-btn" aria-label="Edit" disabled={busy} onClick={() => { setEditing(i); setEditText(m.text); }}><Icon d={I.edit} size={15} /></button>
+                                        : <button className="gh-aip-btn" aria-label="Answer again" disabled={busy} onClick={() => resend(turn)}><Icon d={I.retry} size={15} /></button>}
+                                    <button className="gh-aip-btn gh-danger" aria-label="Delete" disabled={busy} onClick={() => confirmDelete(turn)}><Icon d={I.trash} size={15} /></button>
+                                </div>
+                            )}
                         </div>
                     )];
                 })}
@@ -606,15 +740,41 @@ function ChatPane() {
             </div>
 
             {hasKey ? (
-                <div className="gh-aip-input">
-                    <textarea autoFocus rows={1} value={text} placeholder={`Message @${name}`} spellCheck={false}
-                        onChange={e => setText(e.target.value)}
-                        onKeyDown={e => {
-                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(text); }
-                        }} />
-                    {busy
-                        ? <button className="gh-aip-btn gh-on" aria-label="Stop" onClick={() => { stopped = true; status = "is stopping"; changed(); }}><Icon d={I.x} size={18} /></button>
-                        : <button className="gh-aip-btn gh-on" aria-label="Send" disabled={!text.trim()} onClick={() => ask(text)}><Icon d={I.send} size={18} /></button>}
+                <div className="gh-aip-composer">
+                    {pictures.length > 0 && (
+                        <div className="gh-aip-pending">
+                            {pictures.map((url, n) => (
+                                <span key={n}>
+                                    <img src={url} alt="Picture to send" draggable={false} />
+                                    <button aria-label="Remove picture" onClick={() => setPictures(pictures.filter((_, k) => k !== n))}><Icon d={I.x} size={12} /></button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    {emoji && (
+                        <div className="gh-aip-emoji">
+                            {EMOJI.map(ch => <button key={ch} onClick={() => insert(ch)}>{ch}</button>)}
+                        </div>
+                    )}
+                    <div className="gh-aip-input">
+                        <input ref={picker} type="file" hidden multiple accept={IMAGE_TYPES.join(",")}
+                            onChange={e => { void addPictures(Array.from(e.target.files ?? [])); e.target.value = ""; }} />
+                        <button className="gh-aip-btn" aria-label="Attach a picture" onClick={() => picker.current?.click()}><Icon d={I.plus} size={19} /></button>
+                        <textarea ref={box} autoFocus rows={1} value={text} placeholder={`Message @${name}`} spellCheck={false}
+                            onChange={e => setText(e.target.value)}
+                            onPaste={e => {
+                                const files = Array.from(e.clipboardData.files).filter(f => f.type.startsWith("image/"));
+                                if (files.length) { e.preventDefault(); void addPictures(files); }
+                            }}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); }
+                                if (e.key === "Escape") setEmoji(false);
+                            }} />
+                        <button className={"gh-aip-btn" + (emoji ? " gh-on" : "")} aria-label="Emoji" onClick={() => setEmoji(v => !v)}><Icon d={I.smile} size={19} /></button>
+                        {busy
+                            ? <button className="gh-aip-btn gh-on" aria-label="Stop" onClick={() => { stopped = true; status = "is stopping"; changed(); }}><Icon d={I.x} size={18} /></button>
+                            : <button className="gh-aip-btn gh-on" aria-label="Send" disabled={!text.trim() && !pictures.length} onClick={ask}><Icon d={I.send} size={18} /></button>}
+                    </div>
                 </div>
             ) : (
                 <div className="gh-aip-setup">
@@ -663,7 +823,7 @@ export function AssistantPage() {
             </header>
 
             <div className="gh-aip-body">
-                <ChatPane />
+                <ChatPane onProfile={() => setProfile(true)} />
 
                 {profile && (
                     <aside className="gh-aip-profile">
