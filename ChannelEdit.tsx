@@ -76,9 +76,9 @@ export function canEditChannels(guildId: string): boolean {
 
 /* ───────────── right-click menu ───────────── */
 
-type Entry = { label: string; icon?: string; danger?: boolean; on?: boolean; keep?: boolean; run(): void; } | "line";
+export type Entry = { label: string; icon?: string; danger?: boolean; on?: boolean; keep?: boolean; run(): void; } | "line";
 
-function Menu({ x, y, title, entries, onClose }: { x: number; y: number; title: string; entries: Entry[]; onClose(): void; }) {
+export function Menu({ x, y, title, entries, onClose }: { x: number; y: number; title: string; entries: Entry[]; onClose(): void; }) {
     const ref = useRef<HTMLDivElement>(null);
     const [at, setAt] = useState({ left: x, top: y });
 

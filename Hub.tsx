@@ -13,6 +13,7 @@ import {
     ChannelStore,
     FluxDispatcher,
     GuildChannelStore,
+    MessageRequestStore,
     GuildMemberCountStore,
     GuildMemberStore,
     GuildReadStateStore,
@@ -40,7 +41,7 @@ import {
 
 import { AssistantFloat, assistantName, AssistantRow, isAssistantFloating, setAssistantOpen, toggleAssistant, useAssistant } from "./Assistant";
 import { Calculator } from "./Calculator";
-import { canEditChannels, ChannelEdit } from "./ChannelEdit";
+import { canEditChannels, ChannelEdit, Entry, Menu } from "./ChannelEdit";
 import { channelContext, guildContext, voiceUserContext } from "./context";
 import { MemberActions } from "./Members";
 import { ServerMenu } from "./ServerMenu";
@@ -49,6 +50,7 @@ import { ServerGrid } from "./ServerGrid";
 import { apply, portalHost, setBanner, settings } from "./settings";
 
 const PrivateChannelSortStore = findStoreLazy("PrivateChannelSortStore");
+const SpamMessageRequestStore = findStoreLazy("SpamMessageRequestStore");
 const VoiceActions = findByPropsLazy("selectVoiceChannel", "selectChannel");
 
 const COLLAPSED_KEY = "Glasshouse_collapsedCategories";
@@ -143,6 +145,7 @@ export const I = {
     lock: "M6 11h12v9H6zM8.500 11V8a3.500 3.500 0 0 1 7 0v3",
     down: "M6 9l6 6 6-6",
     back: "M15 6l-6 6 6 6",
+    inbox: "M4 6h16v12H4zM4 7.500l8 6 8-6",
     chat: "M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4 3.500V17H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"
 };
 
@@ -375,10 +378,30 @@ function Channels({ guildId, query, top }: { guildId: string; query: string; top
 /* ───────────── direct messages ───────────── */
 
 function DirectMessages({ query, top }: { query: string; top?: any; }) {
-    useStores([PrivateChannelSortStore, ChannelStore, ReadStateStore, SelectedChannelStore, PresenceStore, UserStore], 1500);
+    useStores([PrivateChannelSortStore, ChannelStore, ReadStateStore, SelectedChannelStore, PresenceStore, UserStore, MessageRequestStore, SpamMessageRequestStore], 1500);
     const ids: string[] = safe(() => PrivateChannelSortStore.getPrivateChannelIds(), []);
     const selectedChannel = SelectedChannelStore.getChannelId();
     const aiOpen = useAssistant();
+
+    // Messages from people you don't know wait on Discord's own requests page, which has a tab for
+    // ordinary requests and one for the ones Discord thinks are spam.
+    const requests = safe(() => (MessageRequestStore as any).getMessageRequestChannelIds().size as number, 0);
+    const spam = safe(() => (SpamMessageRequestStore.getSpamChannelsCount?.() ?? SpamMessageRequestStore.getSpamChannelIds().size) as number, 0);
+    const onRequests = window.location.pathname.startsWith("/message-requests");
+    const [spamTab, setSpamTab] = useState(false);
+    const openRequests = (wantSpam: boolean) => {
+        setAssistantOpen(false);
+        setSpamTab(wantSpam);
+        NavigationRouter.transitionTo("/message-requests");
+        // the page opens on its first tab; the spam tab is the second one
+        let tries = 0;
+        const pick = () => {
+            const tabs = document.querySelectorAll<HTMLElement>('[class*="page_"] [role="tablist"] [role="tab"]');
+            if (tabs.length >= 2) tabs[wantSpam ? 1 : 0].click();
+            else if (++tries < 20) setTimeout(pick, 80);
+        };
+        setTimeout(pick, 60);
+    };
 
     const rows = ids.map(id => {
         const c: any = ChannelStore.getChannel(id);
@@ -411,10 +434,26 @@ function DirectMessages({ query, top }: { query: string; top?: any; }) {
         <div className="gh-channels" onWheel={e => { if (settings.store.layout === "top") e.currentTarget.scrollLeft += e.deltaY; }}>
             {top}
             {!query && (
-                <button className={"gh-channel" + (!selectedChannel && !aiOpen ? " gh-on" : "")}
+                <button className={"gh-channel" + (!selectedChannel && !aiOpen && !onRequests ? " gh-on" : "")}
                     onClick={() => NavigationRouter.transitionTo("/channels/@me")}>
                     <Icon d={I.friends} size={16} />
                     <span className="gh-channel-name">Friends</span>
+                </button>
+            )}
+            {!query && (
+                <button className={"gh-channel" + (onRequests && !spamTab && !aiOpen ? " gh-on" : "") + (requests ? " gh-unread" : "")}
+                    onClick={() => openRequests(false)}>
+                    <Icon d={I.inbox} size={16} />
+                    <span className="gh-channel-name">Message requests</span>
+                    <Badge n={requests} />
+                </button>
+            )}
+            {!query && (
+                <button className={"gh-channel" + (onRequests && spamTab && !aiOpen ? " gh-on" : "")}
+                    onClick={() => openRequests(true)}>
+                    <Icon d={I.shield} size={16} />
+                    <span className="gh-channel-name">Likely spam</span>
+                    {spam > 0 && <span className="gh-count">{spam}</span>}
                 </button>
             )}
             <div className="gh-cat-head gh-static"><span>Direct Messages</span></div>
@@ -524,6 +563,7 @@ export function Hub() {
     const [grid, setGrid] = useState(false);
     const [menu, setMenu] = useState(false);
     const [editing, setEditing] = useState(false);
+    const [pingMenu, setPingMenu] = useState<{ x: number; y: number; id?: string; dm?: boolean; name?: string; } | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -590,6 +630,30 @@ export function Hub() {
             const icon = g?.icon ? IconUtils.getGuildIconURL({ id: g.id, icon: g.icon, size: 64, canAnimate: false }) ?? "" : "";
             return { ...p, name: g?.name ?? "Server", icon };
         });
+    // Clearing pings marks the chats as read, the same as Discord's "Mark As Read".
+    const markRead = (ids: string[]) => {
+        const channels = ids.map(id => ({ channelId: id, messageId: safe(() => ReadStateStore.lastMessageId(id), null), readStateType: 0 }));
+        if (channels.length) safe(() => FluxDispatcher.dispatch({ type: "BULK_ACK", context: "APP", channels } as any), null);
+    };
+    const unreadIn = (id: string): string[] => {
+        const data: any = safe<any>(() => GuildChannelStore.getChannels(id), {});
+        const threads: any[] = Object.values(safe(() => ActiveJoinedThreadsStore.getActiveJoinedThreadsForGuild(id) as any, {})).flatMap((t: any) => Object.values(t));
+        return [...(data.SELECTABLE ?? []), ...(data.VOCAL ?? []), ...threads]
+            .map((e: any) => e?.channel?.id)
+            .filter((c: string) => c && (safe(() => ReadStateStore.hasUnread(c), false) || safe(() => ReadStateStore.getMentionCount(c), 0) > 0));
+    };
+    const clearPing = (p: { id: string; dm?: boolean; }) => markRead(p.dm ? [p.id] : unreadIn(p.id));
+    const clearAllPings = () => markRead([...dmPings.map(p => p.id), ...serverPings.flatMap(p => unreadIn(p.id))]);
+    const openPingMenu = (e: any, p?: { id: string; name: string; }, dm?: boolean) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setPingMenu({ x: e.clientX, y: e.clientY, id: p?.id, name: p?.name, dm });
+    };
+    const pingEntries: Entry[] = pingMenu ? [
+        ...(pingMenu.id ? [{ label: "Clear this one", icon: I.check, run: () => clearPing({ id: pingMenu.id!, dm: pingMenu.dm }) }] : []),
+        { label: "Clear all pings", icon: I.bell, run: clearAllPings }
+    ] : [];
+
     const dmPingTotal = dmPings.reduce((sum, p) => sum + p.n, 0);
     const serverPingTotal = serverPings.reduce((sum, p) => sum + p.n, 0);
 
@@ -606,12 +670,12 @@ export function Hub() {
     // Shown as the first thing inside the scrolling list, so it scrolls away with it
     // instead of staying pinned above your chats.
     const pingStrip = (dmPings.length > 0 || serverPings.length > 0) && (
-                <div className="gh-pings">
+                <div className="gh-pings" onContextMenu={e => openPingMenu(e)}>
                     <small>Pings</small>
                     {dmPings.map(p => (
                         <button key={p.id} className="gh-ping" aria-label={`${p.name} · ${p.n} unread`}
                             onClick={() => NavigationRouter.transitionTo(`/channels/@me/${p.id}`)}
-                            onContextMenu={e => channelContext(e, p.id)}>
+                            onContextMenu={e => openPingMenu(e, p, true)}>
                             <span className="gh-server-icon gh-round">
                                 {p.icon ? <img src={p.icon} alt="" draggable={false} /> : <span className="gh-acronym">{acronym(p.name)}</span>}
                                 <Badge n={p.n} />
@@ -621,7 +685,7 @@ export function Hub() {
                     {serverPings.map(p => (
                         <button key={p.id} className="gh-ping" aria-label={`${p.name} · ${p.n} ${p.n === 1 ? "ping" : "pings"}`}
                             onClick={() => NavigationRouter.transitionToGuild(p.id)}
-                            onContextMenu={e => guildContext(e, p.id)}>
+                            onContextMenu={e => openPingMenu(e, p)}>
                             <span className="gh-server-icon">
                                 {p.icon ? <img src={p.icon} alt="" draggable={false} /> : <span className="gh-acronym">{acronym(p.name)}</span>}
                                 <Badge n={p.n} />
@@ -722,6 +786,7 @@ export function Hub() {
             {prefs && <QuickSettings onClose={() => setPanel(null)} />}
             {panel === "calc" && <Calculator onClose={() => setPanel(null)} />}
             {aiFloating && <AssistantFloat />}
+            {pingMenu && <Menu x={pingMenu.x} y={pingMenu.y} title={pingMenu.name ?? "Pings"} entries={pingEntries} onClose={() => setPingMenu(null)} />}
             {grid && <ServerGrid onClose={() => setGrid(false)} />}
             {s.focusMode && ReactDOM.createPortal(
                 <button className="gh-focus-exit" onClick={() => flip("focusMode")} aria-label="Exit focus (Ctrl+Alt+F)">
